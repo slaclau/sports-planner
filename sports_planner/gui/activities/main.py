@@ -5,13 +5,11 @@ import os
 
 import gi
 import pandas as pd
-
 from sports_planner.io.files import Activity
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk, Pango
-
 from sports_planner.gui.activities.activity import ActivityView
 
 
@@ -65,17 +63,13 @@ class ActivitiesView(Gtk.Box):
         self.status_page = Adw.StatusPage(title="Waiting for activities to be loaded")
         self.activities_scroller.set_child(self.status_page)
 
-    def status_update(self, status, *args):
+    def status_update(self, text: str, i: int = 0, n: int = 0):
         self.status_page.bar = Gtk.ProgressBar()
-        if status == "load":
-            i = args[0]
-            n = args[1]
-            self.status_page.set_description(f"Activity {i} of {n} loaded")
+        if n > 0:
+            self.status_page.set_description(text)
             self.status_page.set_child(self.status_page.bar)
             self.status_page.bar.set_fraction(i / n)
-        elif status == "text":
-            self.status_page.set_description(args[0])
-            self.status_page.set_child(None)
+        self.status_page.set_description(text)
 
     def when_athlete_ready(self):
         self.add_activities()

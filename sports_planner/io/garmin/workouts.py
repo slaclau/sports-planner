@@ -6,8 +6,7 @@ import garth
 import garth.exc
 import pandas as pd
 from dateutil import rrule
-
-from sports_planner.utils.logging import info_time
+from sports_planner.utils.logging import debug_time, info_time
 
 
 def get_plans():
@@ -48,6 +47,7 @@ def get_plan_workouts(planId, start, end):
     )
 
 
+@debug_time
 def get_scheduled_workout(scheduleWorkoutId):
     try:
         return garth.connectapi(f"/workout-service/schedule/{int(scheduleWorkoutId)}")
@@ -116,8 +116,6 @@ def get_all_workouts(start, end):
                 }
             )
     workouts = pd.DataFrame(rows)
-    # workouts.index = workouts["date"].dt.date
-    # workouts.drop("date", axis=1, inplace=True)
     return workouts
 
 
@@ -129,7 +127,7 @@ def get_workout_id(scheduleId):
 
 
 def get_estimate_for_type(step_type, zones=None):
-    if step_type in ["warmup", "cooldown"]:
+    if step_type in ["warmup", "cooldown", "recovery", "rest"]:
         return 3
     if step_type in ["interval"]:
         return 4
@@ -164,7 +162,10 @@ def to_data_frame(workout) -> pd.DataFrame:
                         "description": substep["description"],
                         "sport": sport,
                     }
-                    target_type = substep["targetType"]["workoutTargetTypeKey"]
+                    if substep["targetType"] is None:
+                        target_type = "no.target"
+                    else:
+                        target_type = substep["targetType"]["workoutTargetTypeKey"]
                     row["target_type"] = target_type
                     if target_type == "pace.zone":
                         row["target_lower"] = substep["targetValueTwo"]

@@ -2,14 +2,12 @@ import datetime
 
 import gi
 import pandas as pd
-
 from sports_planner.metrics.pmc import PMC, Banister
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 import plotly.graph_objects as go
 from gi.repository import Adw, Gtk
-
 from sports_planner.gui.chart import FigureWebView
 
 
@@ -32,17 +30,13 @@ class PerformanceView(Gtk.Box):
         self.status_page = Adw.StatusPage(title="Waiting for activities to be loaded")
         self.view.set_content(self.status_page)
 
-    def status_update(self, status, *args):
+    def status_update(self, text: str, i: int = 0, n: int = 0):
         self.status_page.bar = Gtk.ProgressBar()
-        if status == "load":
-            i = args[0]
-            n = args[1]
-            self.status_page.set_description(f"Activity {i} of {n} loaded")
+        if n > 0:
+            self.status_page.set_description(text)
             self.status_page.set_child(self.status_page.bar)
             self.status_page.bar.set_fraction(i / n)
-        elif status == "text":
-            self.status_page.set_description(args[0])
-            self.status_page.set_child(None)
+        self.status_page.set_description(text)
 
     def when_data_ready(self):
         self.view.set_content(self.performance_stack)
@@ -251,19 +245,15 @@ class PerformanceView(Gtk.Box):
         self.performance_stack.remove(self.performance_stack.get_child_by_name("pmc"))
         self.add_charts(self.data)
 
-    def update_status_page(self, page_name, status, *args):
+    def update_status_page(self, page_name, text: str, i: int = 0, n: int = 0):
         page = self.performance_stack.get_child_by_name(page_name)
         if isinstance(page, Adw.StatusPage):
             page.bar = Gtk.ProgressBar()
-            if status == "load":
-                i = args[0]
-                n = args[1]
-                page.set_description(f"Analysing date {i} of {n}")
+            if n > 0:
+                page.set_description(text)
                 page.set_child(page.bar)
                 page.bar.set_fraction(i / n)
-            elif status == "text":
-                page.set_description(args[0])
-                page.set_child(None)
+            page.set_description(text)
 
     def add_charts(self, data):
         for name in data:

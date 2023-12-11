@@ -1,12 +1,10 @@
 import json
 import logging
-import os
 import pickle
 from pathlib import Path
 
 import pandas as pd
 import sweat
-
 from sports_planner.io.garmin.workouts import get_workout, to_data_frame
 
 records_column_name_map = {"unknown_90": "performance_condition"}
@@ -84,15 +82,13 @@ class Activity:
         )
         self.summaries = summaries
 
-    def load_from_connect(self, id):
-        workout = get_workout(id)
+    def load_from_connect(self, workout_id):
+        workout = get_workout(workout_id)
         df = to_data_frame(workout)
         self.load_from_df(df)
         self.meta_details["activityName"] = workout["workoutName"]
 
     def load_from_df(self, df):
-        self.records_df = df
-        self.metrics = {}
         self.meta_details = {"activityName": "From dataframe"}
         self.summaries = {"data": df}
         return

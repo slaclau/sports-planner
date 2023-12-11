@@ -8,8 +8,6 @@ import numpy as np
 import pandas as pd
 
 from sports_planner.io.files import Activity
-from sports_planner.io.garmin.workouts import (get_all_workouts,
-                                               get_scheduled_workout)
 from sports_planner.metrics.calculate import MetricsCalculator
 from sports_planner.utils.logging import debug_time, info_time
 
@@ -17,7 +15,7 @@ from sports_planner.utils.logging import debug_time, info_time
 class Athlete:
     activities: pd.DataFrame
 
-    def __init__(self, email, callback_func=None, sync_providers=None):
+    def __init__(self, email, callback_func=None, sync_providers=None) -> None:
         self.email = email
         self.callback_func = callback_func
         self.activities_dir = Path.home() / "sports-planner" / self.email / "activities"
@@ -28,7 +26,7 @@ class Athlete:
 
         self.activities["date"] = pd.to_datetime(self.activities.index).date
         if self.callback_func is not None:
-            self.callback_func("text", "Grouping activities")
+            self.callback_func("Grouping activities")
         self.days = pd.DataFrame()
         self.days["activities"] = (
             self.activities["activity"].groupby(self.activities["date"]).apply(list)
@@ -36,15 +34,15 @@ class Athlete:
 
     def get_workouts_and_seasons(self):
         if self.callback_func is not None:
-            self.callback_func("text", "Loading scheduled workouts")
+            self.callback_func("Loading scheduled workouts")
         self._load_workouts()
 
         if self.callback_func is not None:
-            self.callback_func("text", "Detecting seasons")
+            self.callback_func("Detecting seasons")
         self.seasons = self.find_seasons()
 
         if self.callback_func is not None:
-            self.callback_func("text", "Done")
+            self.callback_func("Done")
 
     @info_time
     def _load_workouts(self):
@@ -56,26 +54,27 @@ class Athlete:
 
         self.workouts = pd.concat(workouts)
         self.days = self.days.reindex(pd.date_range(self.days.index[0], end))
-        n = len(self.days)
+        n = len(workouts)
         i = 0
 
         def get_activity(workoutId):
             nonlocal i
             i += 1
             if self.callback_func is not None:
-                self.callback_func("load", i, n)
+                self.callback_func(f"Loading workout {i} of {n}", i, n)
             try:
                 workout_path = self.workouts_dir / f"{int(workoutId)}.json"
-                return [Activity(workout_path)]
-            except TypeError:
-                pass
+                return Activity(workout_path)
+            # except TypeError:
+            #     return np.nan
             except ValueError:
-                pass
+                return np.nan
 
         self.workouts["activities"] = self.workouts["workoutId"].apply(get_activity)
-        print(self.workouts)
-        self.days["workouts"] = self.workouts["activities"]
-        print(self.days)
+        self.workouts.dropna(inplace=True)
+        self.days["workouts"] = (
+            self.workouts["activities"].groupby(self.workouts["date"]).apply(list)
+        )
 
     def get_activities(self, date):
         return self.days.iloc[date, "activities"]
@@ -96,7 +95,7 @@ class Athlete:
             startTimeGMT = activity.meta_details["startTimeGMT"]
             activities.append({"startTimeGMT": startTimeGMT, "activity": activity})
             if self.callback_func is not None:
-                self.callback_func("load", i, num)
+                self.callback_func(f"Loading activity {i} of {num}", i, num)
             logging.debug(f"Read in {file} (activity {i} of {num})")
 
         self.activities = pd.DataFrame(activities)
@@ -112,15 +111,15 @@ class Athlete:
 
         @debug_time
         def get_metrics(activities):
+            nonlocal i
+            i += 1
+
             if not isinstance(activities, list):
                 return [0]
             if not activities:
                 return [0]
-
-            nonlocal i
-            i += 1
             if callback_func is not None:
-                callback_func("load", i, n)
+                callback_func(f"Getting metrics for activity {i} of {n}", i, n)
             rtn = []
             for activity in activities:
                 try:

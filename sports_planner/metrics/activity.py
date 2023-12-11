@@ -17,6 +17,8 @@ class TimerTime(ActivityMetric):
             return self.activity.details["total_timer_time"]
         except AttributeError:
             pass
+        except TypeError:
+            pass
         return (
             self.activity.records_df.index[-1] - self.activity.records_df.index[0]
         ).total_seconds()

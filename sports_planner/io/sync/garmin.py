@@ -9,12 +9,13 @@ import garth
 import numpy as np
 import pandas as pd
 from garth.exc import GarthException
-
 from sports_planner.io.garmin.workouts import (get_all_workouts,
                                                get_scheduled_workout)
+from sports_planner.io.sync.base import SyncProvider
+from sports_planner.utils.logging import info_time
 
 
-class Garmin:
+class Garmin(SyncProvider):
     def __init__(self, email, password=None):
         self.email = email
         if password is not None:
@@ -31,7 +32,7 @@ class Garmin:
             raise LoginException
 
     def sync(self):
-        """Synchronize downloaded information with io"""
+        """Synchronize downloaded information with Garmin connect."""
         activities = self.get_activities(0, 2000)
         path = Path.home() / "sports-planner" / self.email / "activities"
         downloaded = [os.path.splitext(filename)[0] for filename in os.listdir(path)]
@@ -91,6 +92,7 @@ class Garmin:
 
         logging.info(f"Extracted {activity_file}")
 
+    @info_time
     def get_schedule(self, start, end):
         path = Path.home() / "sports-planner" / self.email / "schedule" / "garmin.json"
 
@@ -109,6 +111,7 @@ class Garmin:
         new_schedule = get_all_workouts(last_scheduled, end)
 
         schedule = pd.concat([schedule, new_schedule], ignore_index=True)
+        schedule.drop_duplicates(subset="scheduleId", inplace=True)
 
         temp_schedule = schedule[schedule["date"].dt.date < datetime.date.today()]
 
@@ -117,6 +120,7 @@ class Garmin:
 
         return schedule
 
+    @info_time
     def get_workouts(self, start, end):
         workouts = self.get_schedule(start, end)
         path = Path.home() / "sports-planner" / self.email / "workouts" / "garmin.json"
@@ -160,9 +164,10 @@ class Garmin:
             json.dump(schedule_dict, f)
 
         self.workouts = workouts
-        self.download_needed_workouts()
+        self.save_workout_jsons()
 
-    def download_needed_workouts(self):
+    @info_time
+    def save_workout_jsons(self):
         path = Path.home() / "sports-planner" / self.email / "workouts"
         for workout in self.workouts["workout"]:
             if workout is not None:

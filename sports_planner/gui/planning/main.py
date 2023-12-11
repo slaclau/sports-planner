@@ -2,7 +2,6 @@ import datetime
 import logging
 
 import gi
-
 from sports_planner.gui.activities.main import ActivitiesView
 
 gi.require_version("Gtk", "4.0")
@@ -32,17 +31,13 @@ class PlanningView(Gtk.Box):
         self.calendar = None
         self.calendar_sidebar = None
 
-    def status_update(self, status, *args):
+    def status_update(self, text: str, i: int = 0, n: int = 0):
         self.status_page.bar = Gtk.ProgressBar()
-        if status == "load":
-            i = args[0]
-            n = args[1]
-            self.status_page.set_description(f"Activity {i} of {n} loaded")
+        if n > 0:
+            self.status_page.set_description(text)
             self.status_page.set_child(self.status_page.bar)
             self.status_page.bar.set_fraction(i / n)
-        elif status == "text":
-            self.status_page.set_description(args[0])
-            self.status_page.set_child(None)
+        self.status_page.set_description(text)
 
     def when_athlete_ready(self):
         self.view.set_content(self.stack)

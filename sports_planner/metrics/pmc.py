@@ -3,7 +3,6 @@ import datetime
 import numpy as np
 import pandas as pd
 import scipy.optimize
-
 from sports_planner.metrics.base import ActivityMetric
 from sports_planner.metrics.coggan import CogganTSS
 from sports_planner.metrics.govss import GOVSS
@@ -38,7 +37,7 @@ class PMC:
         self.t_long = t_long
         self.title = title
         if callback_func is not None:
-            callback_func("text", f"Aggregating {metric.name}")
+            callback_func(f"Aggregating {metric.name}")
         impulse = athlete.aggregate_metric(metric, "sum", callback_func=callback_func)
         future_impulse = athlete.aggregate_metric(
             metric, "sum", callback_func=callback_func, future=True
@@ -58,7 +57,7 @@ class PMC:
         exp_long = np.e ** (-1 / t_long)
 
         if callback_func is not None:
-            callback_func("text", "Building PMC")
+            callback_func("Building PMC")
         future = False
         sts = 0
         lts = 0
@@ -98,7 +97,7 @@ class PMC:
 
         self.df = df
         if callback_func is not None:
-            callback_func("text", "Done")
+            callback_func("Done")
 
 
 class Banister:
@@ -110,7 +109,7 @@ class Banister:
         self.metric = metric
         self.title = title
         if callback_func is not None:
-            callback_func("text", f"Aggregating {metric.name}")
+            callback_func(f"Aggregating {metric.name}")
         response = pmc.athlete.aggregate_metric(
             metric, "max", callback_func=callback_func
         )
@@ -127,7 +126,7 @@ class Banister:
         if split_seasons:
             for season in pmc.athlete.seasons:
                 if callback_func is not None:
-                    callback_func("text", f"Analysing season {season[0]} - {season[1]}")
+                    callback_func(f"Analysing season {season[0]} - {season[1]}")
                 a, b, c = self.find_params(season)
                 df = self.df
                 df = df.loc[season[0] <= df.index]
@@ -141,7 +140,7 @@ class Banister:
             a, b, c = self.find_params()
             self.df["predict"] = self.df.apply(predict, axis=1)
         if callback_func is not None:
-            callback_func("text", f"Done")
+            callback_func(f"Done")
 
     @debug_time
     def find_params(self, season=None):

@@ -2,7 +2,6 @@ import gi
 
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk
-
 from sports_planner.gui.activities.main import ActivitiesView
 from sports_planner.gui.performance.main import PerformanceView
 from sports_planner.gui.planning.main import PlanningView
@@ -11,7 +10,7 @@ from sports_planner.gui.planning.main import PlanningView
 class MainWindow(Adw.ApplicationWindow):
     """Main window for application."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(title="Sports Planner", **kwargs)
         self.maximize()
 
