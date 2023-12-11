@@ -1,11 +1,11 @@
 import json
 import logging
-import pickle
-
-import sweat
-import pandas as pd
-from pathlib import Path
 import os
+import pickle
+from pathlib import Path
+
+import pandas as pd
+import sweat
 
 from sports_planner.io.garmin.workouts import get_workout, to_data_frame
 

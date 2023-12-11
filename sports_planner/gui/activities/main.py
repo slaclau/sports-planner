@@ -1,7 +1,7 @@
 import datetime
+import json
 import logging
 import os
-import json
 
 import gi
 import pandas as pd
@@ -10,7 +10,7 @@ from sports_planner.io.files import Activity
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Pango
+from gi.repository import Adw, Gtk, Pango
 
 from sports_planner.gui.activities.activity import ActivityView
 

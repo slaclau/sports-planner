@@ -2,10 +2,9 @@ import logging
 from graphlib import TopologicalSorter
 from time import time
 
-from sports_planner.io.files import Activity
-from sports_planner.utils.logging import logtime, info_time, debug_time
-
 import sports_planner.metrics
+from sports_planner.io.files import Activity
+from sports_planner.utils.logging import debug_time, info_time, logtime
 
 
 class MetricsCalculator:

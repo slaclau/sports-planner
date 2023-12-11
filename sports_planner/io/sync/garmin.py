@@ -1,21 +1,17 @@
+import datetime
+import json
 import logging
+import os
+import zipfile
 from pathlib import Path
 
-import datetime
-
 import garth
-import os
-
 import numpy as np
 import pandas as pd
 from garth.exc import GarthException
-import zipfile
-import json
 
-from sports_planner.io.garmin.workouts import (
-    get_all_workouts,
-    get_scheduled_workout,
-)
+from sports_planner.io.garmin.workouts import (get_all_workouts,
+                                               get_scheduled_workout)
 
 
 class Garmin:

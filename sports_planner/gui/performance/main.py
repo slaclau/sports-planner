@@ -7,9 +7,8 @@ from sports_planner.metrics.pmc import PMC, Banister
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
-
 import plotly.graph_objects as go
+from gi.repository import Adw, Gtk
 
 from sports_planner.gui.chart import FigureWebView
 

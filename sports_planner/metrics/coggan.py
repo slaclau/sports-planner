@@ -1,4 +1,5 @@
-from sports_planner.metrics.activity import CyclingMetric, AveragePower, AverageHR
+from sports_planner.metrics.activity import (AverageHR, AveragePower,
+                                             CyclingMetric)
 
 
 class CogganNP(CyclingMetric):

@@ -1,5 +1,5 @@
-import logging
 import datetime
+import logging
 
 import gi
 
@@ -7,7 +7,7 @@ from sports_planner.gui.activities.main import ActivitiesView
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
+from gi.repository import Adw, Gtk
 
 
 class PlanningView(Gtk.Box):

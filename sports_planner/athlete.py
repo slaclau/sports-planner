@@ -1,21 +1,17 @@
 import datetime
 import logging
+import os
 from pathlib import Path
 
 import garth
 import numpy as np
 import pandas as pd
 
-from sports_planner.io.garmin.workouts import (
-    get_all_workouts,
-    get_scheduled_workout,
-)
 from sports_planner.io.files import Activity
+from sports_planner.io.garmin.workouts import (get_all_workouts,
+                                               get_scheduled_workout)
 from sports_planner.metrics.calculate import MetricsCalculator
-
-import os
-
-from sports_planner.utils.logging import info_time, debug_time
+from sports_planner.utils.logging import debug_time, info_time
 
 
 class Athlete:

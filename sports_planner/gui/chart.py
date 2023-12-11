@@ -1,10 +1,9 @@
+from tempfile import NamedTemporaryFile
+from time import time
+
 import gi
 
 from sports_planner.utils.logging import logtime
-
-from tempfile import NamedTemporaryFile
-
-from time import time
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")

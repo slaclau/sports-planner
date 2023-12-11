@@ -1,5 +1,6 @@
 import os
 from tempfile import NamedTemporaryFile
+from time import time
 
 import gi
 import numpy as np
@@ -9,23 +10,19 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import sweat
 
-from time import time
-from sports_planner.utils.logging import logtime
-
-from sports_planner.io.files import read_file, Activity
-
 from sports_planner.gui.chart import FigureWebView
-
+from sports_planner.io.files import Activity, read_file
 from sports_planner.metrics.calculate import MetricsCalculator
-from sports_planner.metrics.govss import GOVSS
 from sports_planner.metrics.coggan import CogganTSS, CogganVI
+from sports_planner.metrics.govss import GOVSS
+from sports_planner.utils.logging import logtime
 
 pio.templates.default = "plotly"
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("WebKit", "6.0")
-from gi.repository import Gtk, Adw, WebKit  # noqa: E402
+from gi.repository import Adw, Gtk, WebKit  # noqa: E402
 
 
 class ActivityView:

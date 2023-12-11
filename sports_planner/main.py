@@ -2,21 +2,19 @@ import logging
 import sys
 import threading
 
-
-from sports_planner.gui.main import MainWindow
-from sports_planner.metrics.garmin import RunningVO2Max
-from sports_planner.metrics.pmc import PMC, UniversalStressScore, Banister
-from sports_planner.athlete import Athlete
-from sports_planner.io.sync.garmin import LoginException, Garmin
-from sports_planner.gui import dialogues
-
 import gi
+
+from sports_planner.athlete import Athlete
+from sports_planner.gui import dialogues
+from sports_planner.gui.main import MainWindow
+from sports_planner.io.sync.garmin import Garmin, LoginException
+from sports_planner.metrics.garmin import RunningVO2Max
+from sports_planner.metrics.pmc import PMC, Banister, UniversalStressScore
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, GLib
-
 import pandas as pd
+from gi.repository import Adw, GLib
 
 
 class Application(Adw.Application):

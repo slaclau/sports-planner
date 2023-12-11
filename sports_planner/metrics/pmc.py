@@ -7,8 +7,7 @@ import scipy.optimize
 from sports_planner.metrics.base import ActivityMetric
 from sports_planner.metrics.coggan import CogganTSS
 from sports_planner.metrics.govss import GOVSS
-
-from sports_planner.utils.logging import info_time, debug_time
+from sports_planner.utils.logging import debug_time, info_time
 
 
 class UniversalStressScore(ActivityMetric):

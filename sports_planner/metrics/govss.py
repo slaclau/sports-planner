@@ -1,8 +1,8 @@
 import numpy as np
 
-from sports_planner.metrics.base import ActivityMetric
-from sports_planner.metrics.athlete import Height, Weight
 from sports_planner.metrics.activity import RunningMetric, TimerTime
+from sports_planner.metrics.athlete import Height, Weight
+from sports_planner.metrics.base import ActivityMetric
 
 
 def calculate_power(weight, height, speed, slope=0.0, distance=0.0, initial_speed=0.0):
