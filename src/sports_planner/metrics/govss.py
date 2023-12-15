@@ -1,9 +1,7 @@
 import numpy as np
-from numba import jit
 
 from sports_planner.metrics.activity import RunningMetric, TimerTime
 from sports_planner.metrics.athlete import Height, Weight
-from sports_planner.metrics.base import ActivityMetric
 
 
 def calculate_power(weight, height, speed, slope=0.0, distance=0.0, initial_speed=0.0):
@@ -55,24 +53,33 @@ class LNP(RunningMetric):
 
         rolling_df = self.df.rolling(window="120s", method="table")
 
-        power = []
+        df = self.df.copy()
 
-        for window in rolling_df:
-            speed120 = window["d_speed"].mean()
-            slope120 = window["slope"].mean()
+        df["speed120"] = (
+            self.df["d_speed"].rolling(window="120s").mean()
+        )  # engine="numba")
+        df["slope120"] = (
+            self.df["slope"].rolling(window="120s").mean()
+        )  # engine="numba")
 
-            power.append(
-                calculate_power(
-                    weight,
-                    height,
-                    speed120,
-                    slope120,
-                    window["distance"].iloc[-1] - window["distance"].iloc[0],
-                    window["d_speed"].iloc[0],
-                )
+        df["distance120"] = self.df["distance"].shift(120) - self.df["distance"]
+
+        df["begin_speed"] = self.df["d_speed"].shift(120)
+
+        def get_power(row):
+            return calculate_power(
+                weight,
+                height,
+                row[0],
+                row[1],
+                row[2],
+                row[3],
             )
 
-        self.df["power"] = power
+        self.df["power"] = df[
+            ["speed120", "slope120", "distance120", "begin_speed"]
+        ].apply(get_power, axis=1, raw=True)
+
         self.df["power30"] = self.df["power"].rolling(window="30s").mean()
 
         power30_4 = self.df["power30"] ** 4
