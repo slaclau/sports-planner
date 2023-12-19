@@ -8,12 +8,11 @@ import plotly.express as px
 from sports_planner.gui.chart import FigureWebView
 from sports_planner.gui.widgets.base import Spec, Widget
 from sports_planner.io.files import Activity
-from sports_planner.metrics.calculate import get_metrics_map
+from sports_planner.metrics.calculate import get_metric
 
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
 gi.require_version("WebKit", "6.0")
-
 from gi.repository import Adw, Gdk, Gio, GObject, Gtk, WebKit
 
 
@@ -119,7 +118,6 @@ class DropFrame(Widget):
         self.overview = overview
         self.frame = Gtk.Frame()
         self.append(self.frame)
-        # self.set_size_request(-1, 20)
 
         if draggable:
             dest = Gtk.DropTarget.new(str, Gdk.DragAction.MOVE)
@@ -210,10 +208,12 @@ class OverviewWidget(Widget):
             self.toolbar_view.set_content(grid)
             i = 0
             for item in spec["list"]:
-                metric = get_metrics_map()[item]
+                metric = get_metric(item)
                 name = f"{metric.name}: "
                 unit = metric.unit
                 raw_value = self.activity.get_metric(metric)
+                if raw_value is None:
+                    continue
                 format = metric.format
                 if unit == "s":
                     raw_value = datetime.datetime.utcfromtimestamp(
@@ -253,6 +253,7 @@ class OverviewWidget(Widget):
 def test(app):
     window = Adw.ApplicationWindow(application=app)
     spec = {
+        "type": "grid",
         "list": [
             [
                 {"type": "list", "list": ["a", "b"]},

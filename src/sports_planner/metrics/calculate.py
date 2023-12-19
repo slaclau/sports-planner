@@ -8,13 +8,14 @@ from sports_planner.metrics.activity import AverageSpeed
 if TYPE_CHECKING:
     from sports_planner.io.files import Activity
 from sports_planner.metrics import *
+from sports_planner.metrics.activity import Curve, MeanMax
 from sports_planner.utils.logging import debug_time, info_time, logtime
 
 all_metrics = None
 metrics_map = None
 
 logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 
 def get_all_metrics() -> set[type[base.Metric]]:
@@ -31,10 +32,20 @@ def get_metrics_map():
     return metrics_map
 
 
+def get_metric(metric_name):
+    metrics_map = get_metrics_map()
+    if metric_name in metrics_map:
+        return metrics_map[metric_name]
+    return eval(metric_name)
+
+
 def _get_all_subclasses(cls) -> set[type]:
     return set(cls.__subclasses__()).union(
         [s for c in cls.__subclasses__() for s in _get_all_subclasses(c)]
     )
+
+
+logger.debug(f"Getting all metrics {get_all_metrics()}")
 
 
 class MetricsCalculator:
@@ -65,7 +76,7 @@ class MetricsCalculator:
     def compute(self, recompute_all=False):
         # recompute_all = True
         computed = []
-        retrieved = [metric.name for metric in self.metrics]
+        retrieved = [metric for metric in self.metrics]
         recompute = []
         debug_string = ""
         try:
@@ -76,11 +87,14 @@ class MetricsCalculator:
             try:
                 metric_instance = metric(self.activity, self.metrics)
                 if metric_instance.get_applicable() and (
-                    metric not in self.metrics or metric in recompute or recompute_all
+                    not (metric in self.metrics or metric.name in self.metrics)
+                    or metric in recompute
+                    or recompute_all
                 ):
-                    start = time()
-                    self.metrics[metric] = metric_instance.compute()
-                    logtime(start, f"Computing {metric.name} took")
+                    if metric in get_all_metrics():
+                        self.metrics[metric] = metric_instance.compute()
+                    else:
+                        self.metrics[metric.name] = metric_instance.compute()
                     computed.append(metric.name)
             except AssertionError as e:
                 print(f"AssertionError: {e}")

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import gi
 import pandas as pd
+import profilehooks
 import yaml
 
 from sports_planner.athlete import Athlete
@@ -55,10 +56,10 @@ class ActivitiesView(Gtk.Box):
         navigation_sidebar_view.add_top_bar(navigation_sidebar_header)
         navigation_sidebar.set_child(navigation_sidebar_view)
 
-        navigation_content_header = Adw.HeaderBar()
-        navigation_content_header.set_show_end_title_buttons(False)
+        # navigation_content_header = Adw.HeaderBar()
+        # navigation_content_header.set_show_end_title_buttons(False)
         self.navigation_content_view = Adw.ToolbarView()
-        self.navigation_content_view.add_top_bar(navigation_content_header)
+        # self.navigation_content_view.add_top_bar(navigation_content_header)
         self.navigation_content.set_child(self.navigation_content_view)
 
         self.navigation_content_view.set_content(
@@ -120,6 +121,7 @@ class ActivitiesView(Gtk.Box):
             self.navigation_content_view.set_content(activity_view)
 
     def save_spec(self, spec):
+        self.spec = spec
         with open(
             Path.home()
             / "sports-planner"
@@ -128,7 +130,7 @@ class ActivitiesView(Gtk.Box):
             / "activity.yaml",
             "w",
         ) as f:
-            yaml.dump(spec, f)
+            yaml.dump(spec, f, sort_keys=False)
 
     def update_calendar(self, _: Gtk.Calendar | None) -> None:
         self.calendar.clear_marks()

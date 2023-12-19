@@ -40,7 +40,7 @@ class Application(Adw.Application):
         self.login()
         self.create_athlete()
 
-    @profilehooks.profile(filename="_thread_func.prof", immediate=True)
+    # @profilehooks.profile(filename="_thread_func.prof", immediate=True)
     def _thread_func(self) -> None:
         if isinstance(self.win, MainWindow):
             self.athlete = Athlete(
@@ -67,7 +67,7 @@ class Application(Adw.Application):
                 ),
             )
             self.win.performance_view.data["pmc"] = pmc
-            GLib.idle_add(self.win.performance_view.when_data_ready)
+            GLib.idle_add(self.win.performance_view.update)
 
             banister = Banister(
                 pmc,
@@ -78,7 +78,7 @@ class Application(Adw.Application):
                 ),
             )
             self.win.performance_view.data["banister"] = banister
-            GLib.idle_add(self.win.performance_view.when_data_ready)
+            GLib.idle_add(self.win.performance_view.update)
         else:
             raise TypeError
 
@@ -136,7 +136,7 @@ class Application(Adw.Application):
 
 
 def main() -> None:
-    """Entrypoint"""
+    """Entrypoint."""
     logging.basicConfig(level=logging.WARNING)
     # pd.set_option("display.max_rows", None)
     # pd.set_option("display.max_columns", None)

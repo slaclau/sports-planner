@@ -7,7 +7,8 @@ import yaml
 
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
-from gi.repository import Adw, GObject, Gtk  # noqa: E402 PLC413
+gi.require_version("GtkSource", "5")
+from gi.repository import Adw, GObject, Gtk, GtkSource  # noqa: E402 PLC413
 
 Spec = None | list["Spec"] | dict[str, "Spec"]
 
@@ -34,7 +35,7 @@ class Widget(Gtk.Box):
 
             group = Adw.PreferencesGroup(title="Configuration YAML")
             page.add(group)
-            self.text_buffer = Gtk.TextBuffer()
+            self.text_buffer = GtkSource.Buffer()
 
             configuration_field = self.make_configuration_field()
             group.add(configuration_field)
@@ -66,7 +67,7 @@ class Widget(Gtk.Box):
 
         def make_configuration_field(self) -> Adw.PreferencesRow:
             row = Adw.PreferencesRow(title="Configuration YAML")
-            text_view = Gtk.TextView(
+            text_view = GtkSource.View(
                 margin_start=5,
                 margin_end=5,
                 margin_top=5,
@@ -74,10 +75,12 @@ class Widget(Gtk.Box):
                 monospace=True,
                 buffer=self.text_buffer,
             )
+            self.text_buffer.set_language(GtkSource.LanguageManager.get_default().get_language("yaml"))
+            self.text_buffer.set_style_scheme(GtkSource.StyleSchemeManager.get_default().get_scheme("Adwaita-dark"))
             text_view.set_size_request(-1, 100)
             file = tempfile.NamedTemporaryFile()
             with open(file.name, "w") as f:
-                yaml.dump(self.widget.spec, f)
+                yaml.dump(self.widget.spec, f, sort_keys=False)
             with open(file.name, "r") as f:
                 self.text_buffer.set_text(f.read())
             row.set_child(text_view)
@@ -89,5 +92,5 @@ class Widget(Gtk.Box):
 
 
 GObject.signal_new(
-    "spec_changed", Widget, GObject.SignalFlags.RUN_FIRST, None, (GObject.TYPE_OBJECT,)
+    "spec-changed", Widget, GObject.SignalFlags.RUN_FIRST, None, (GObject.TYPE_OBJECT,)
 )

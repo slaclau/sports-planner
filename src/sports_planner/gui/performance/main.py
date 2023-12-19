@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import gi
 import pandas as pd
@@ -11,6 +12,9 @@ import plotly.graph_objects as go
 from gi.repository import Adw, Gtk
 
 from sports_planner.gui.chart import FigureWebView
+
+logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
 
 
 class PerformanceView(Gtk.Box):
@@ -284,36 +288,42 @@ class PerformanceView(Gtk.Box):
         return FigureWebView(fig)
 
     def update(self):
-        self.performance_stack.remove(self.performance_stack.get_child_by_name("pmc"))
-        self.add_charts(self.data)
+        self.add_charts(list(self.data))
+
+    def update_page(self, page):
+        self._add_chart(page)
 
     def update_status_page(self, page_name, text: str, i: int = 0, n: int = 0):
+        logger.debug(f"Updating status page {page_name} with {text}, {i}, {n}")
         page = self.performance_stack.get_child_by_name(page_name)
         if isinstance(page, Adw.StatusPage):
-            page.bar = Gtk.ProgressBar()
+            bar = Gtk.ProgressBar()
             if n > 0:
-                page.set_description(text)
-                page.set_child(page.bar)
-                page.bar.set_fraction(i / n)
+                page.set_child(bar)
+                bar.set_fraction(i / n)
             page.set_description(text)
 
-    def add_charts(self, data):
-        for name in data:
-            try:
-                self.performance_stack.remove(
-                    self.performance_stack.get_child_by_name(name)
-                )
-            except TypeError:
-                pass
-            if isinstance(data[name], PMC):
-                self.performance_stack.add_titled(
-                    self.create_pmc(data[name]), name, data[name].title
-                )
-            elif isinstance(data[name], Banister):
-                self.performance_stack.add_titled(
-                    self.create_banister(data[name]), name, data[name].title
-                )
-            elif isinstance(data[name], tuple):
-                self.performance_stack.add_titled(
-                    Adw.StatusPage(title=data[name][0]), name, data[name][1]
-                )
+    def add_charts(self, names):
+        for name in names:
+            self._add_chart(name)
+
+    def _add_chart(self, name):
+        logger.debug(f"Adding {name}: {self.data[name]} to performance view")
+        old_page = self.performance_stack.get_child_by_name(name)
+        data = self.data[name]
+        if old_page is not None:
+            logger.debug("Removing old page")
+            self.performance_stack.remove(old_page)
+        if isinstance(data, PMC):
+            logger.debug("Adding PMC")
+            self.performance_stack.add_titled(self.create_pmc(data), name, data.title)
+        elif isinstance(data, Banister):
+            logger.debug("Adding Banister")
+            self.performance_stack.add_titled(
+                self.create_banister(data), name, data.title
+            )
+        elif isinstance(data, tuple):
+            logger.debug("Adding Status page")
+            self.performance_stack.add_titled(
+                Adw.StatusPage(title=data[0]), name, data[1]
+            )

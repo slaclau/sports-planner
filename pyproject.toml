@@ -48,7 +48,7 @@ load-plugins = [
 [tool.pylint.MESSAGES-CONTROL]
 disable = [
     "invalid-name",
-    "global-statement",
+    "logging-fstring-interpolation"
 ]
 extension-pkg-allow-list = [
 	"wx",
@@ -68,5 +68,6 @@ require-plugins = [
     "flake8-pydocstyle",
     "flake8-pylint",
     "flake8-json",
+    "flake8-bugbear",
 ]
 docstring_style = "numpy"

@@ -1,23 +1,52 @@
+"""This module contains the :class:`Athlete` class."""
+
 import datetime
 import logging
 import os
+import typing
 from pathlib import Path
 
-import garth
 import numpy as np
+import numpy.typing
 import pandas as pd
 
 from sports_planner.io.files import Activity
+from sports_planner.io.sync.base import SyncProvider
+from sports_planner.metrics.base import Metric
 from sports_planner.metrics.calculate import MetricsCalculator
 from sports_planner.utils.logging import debug_time, info_time
 
 logger = logging.getLogger(__name__)
 
 
-class Athlete:
-    activities: pd.DataFrame
+class Callback(typing.Protocol):  # noqa PLR903
+    """Class for type hinting callback functions."""
 
-    def __init__(self, email, callback_func=None, sync_providers=None) -> None:
+    def __call__(  # noqa: D102
+        self, text: str, i: typing.Optional[int] = 0, n: typing.Optional[int] = 0
+    ) -> None:
+        pass
+
+
+class Athlete:
+    """This class represents an athlete.
+
+    It provides methods to access activities and workouts as well as for
+    aggregating metrics.
+    """
+
+    activities: pd.DataFrame
+    workouts: pd.DataFrame
+    days: pd.DataFrame
+    seasons: list[tuple[datetime.date, datetime.date]]
+
+    def __init__(
+        self,
+        email: str,
+        callback_func: typing.Optional[Callback] = None,
+        sync_providers: typing.Optional[list[SyncProvider]] = None,
+    ) -> None:
+        """Create an instance of the class."""
         self.email = email
         self.callback_func = callback_func
         self.activities_dir = Path.home() / "sports-planner" / self.email / "activities"
@@ -34,7 +63,12 @@ class Athlete:
             self.activities["activity"].groupby(self.activities["date"]).apply(list)
         )
 
-    def get_workouts_and_seasons(self):
+    def get_workouts_and_seasons(self) -> None:
+        """Load workouts and then split days into seasons.
+
+        This is separated from :meth:`__init__` to avoid slowing it down
+        when only activities are needed.
+        """
         if self.callback_func is not None:
             self.callback_func("Loading scheduled workouts")
         self._load_workouts()
@@ -47,7 +81,7 @@ class Athlete:
             self.callback_func("Done")
 
     @info_time
-    def _load_workouts(self):
+    def _load_workouts(self) -> None:
         end = datetime.date.today() + datetime.timedelta(days=60)
         workouts = []
         for sync_provider in self.sync_providers:
@@ -59,7 +93,7 @@ class Athlete:
         n = len(self.workouts)
         i = 0
 
-        def get_activity(row):
+        def get_activity(row: pd.Series) -> Activity | float:  # type: ignore
             workoutId = row["workoutId"]
             nocache = row["date"].date() >= datetime.date.today()
             nonlocal i
@@ -80,11 +114,14 @@ class Athlete:
             self.workouts["activities"].groupby(self.workouts["date"]).apply(list)
         )
 
-    def get_activities(self, date):
-        return self.days.iloc[date, "activities"]
+    def get_activities(self, date: datetime.date) -> list[Activity]:
+        """Get a list of activities on a given date."""
+        return typing.cast(
+            list[Activity], self.days.iloc[date, "activities"]
+        )  # type: ignore
 
     @info_time
-    def _load_activities(self):
+    def _load_activities(self) -> None:
         files = [
             file
             for file in os.listdir(path=self.activities_dir)
@@ -107,7 +144,14 @@ class Athlete:
         self.activities.sort_index(inplace=True)
 
     @info_time
-    def aggregate_metric(self, metric, how, callback_func=None, future=False):
+    def aggregate_metric(  # type: ignore
+        self,
+        metric: Metric,
+        how: str,
+        callback_func: typing.Optional[Callback] = None,
+        future: bool = False,
+    ) -> pd.Series:  # type: ignore
+        """Aggregate a metric across all days available."""
         i = 0
         col = "workouts" if future else "activities"
         n = len(self.days)
@@ -115,7 +159,7 @@ class Athlete:
         desired_metrics = MetricsCalculator.order_deps([metric])
 
         @debug_time
-        def get_metrics(activities):
+        def get_metrics(activities: list[Activity]) -> list:  # type: ignore
             nonlocal i
             i += 1
 
@@ -137,11 +181,11 @@ class Athlete:
                     rtn.append(0)
             return rtn
 
-        def _sum(activities):
-            return sum(get_metrics(activities))
+        def _sum(activities: list[Activity]) -> float:
+            return typing.cast(float, sum(get_metrics(activities)))
 
-        def _max(activities):
-            return max(get_metrics(activities))
+        def _max(activities: list[Activity]) -> float:
+            return typing.cast(float, max(get_metrics(activities)))
 
         if how == "list":
             return self.days[col].apply(get_metrics)
@@ -152,14 +196,16 @@ class Athlete:
         raise ValueError(f"Unknown 'how' parameter {how}")
 
     @info_time
-    def find_seasons(self):
-        def season_size(season):
+    def find_seasons(self) -> list[tuple[datetime.date, datetime.date]]:
+        """Separate :attr:`days` into seasons."""
+
+        def season_size(season: numpy.typing.NDArray) -> int:  # type: ignore
             rtn = (season[-1] - season[0]).astype("timedelta64[D]") / np.timedelta64(
                 1, "D"
             )
-            return rtn
+            return typing.cast(int, rtn)
 
-        def split(season):
+        def split(season: numpy.typing.NDArray):  # type: ignore
             gaps = np.diff(season).astype("timedelta64[D]")
             idx = gaps.argmax()
             idx += 1
@@ -177,14 +223,14 @@ class Athlete:
             lambda d: [d] if isinstance(d, Activity) else []
         )
         days["combined"] = days["activities"] + days["workouts"]
-        days = days[days["combined"].map(lambda d: len(d)) > 0]
-        days = np.array(days.index)
+        days = days[days["combined"].map(len) > 0]
+        days_array = np.array(days.index)
 
-        biggest_season = season_size(days)
+        biggest_season = season_size(days_array)
         season_limit = 2 * 365
-        gap_limit = 2 * 30
+        # gap_limit = 2 * 30
         seasons = []
-        seasons.append(days)
+        seasons.append(days_array)
         sizes = [biggest_season]
         i = 0
 

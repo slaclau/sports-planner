@@ -1,13 +1,14 @@
 import json
 import logging
-import pickle
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import dill as pickle
 import pandas as pd
 import sweat
 
 from sports_planner.io.garmin.workouts import get_workout, to_data_frame
+from sports_planner.metrics.activity import CurveMeta, MeanMaxMeta
 
 if TYPE_CHECKING:
     from sports_planner.metrics.base import Metric
@@ -55,6 +56,8 @@ class Activity:
         if isinstance(metric, str):
             metric = get_metrics_map()[metric]
         try:
+            if metric.__class__ in [CurveMeta, MeanMaxMeta]:
+                return MetricsCalculator(self, [metric]).metrics[metric.name]
             return MetricsCalculator(self, [metric]).metrics[metric]
         except KeyError:
             return

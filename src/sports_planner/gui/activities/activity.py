@@ -1,3 +1,5 @@
+import typing
+
 import gi
 import numpy as np
 import pandas as pd
@@ -6,7 +8,7 @@ import plotly.graph_objects as go  # type: ignore
 import plotly.io as pio  # type: ignore
 import sweat  # type: ignore
 
-from sports_planner.gui.activities.chart import ActivityPlot, MapViewer
+from sports_planner.gui.activities.chart import ActivityPlot, CurveViewer, MapViewer
 from sports_planner.gui.activities.overview import OverviewPage
 from sports_planner.gui.chart import FigureWebView
 from sports_planner.gui.widgets.base import Spec, Widget
@@ -23,18 +25,28 @@ class ActivityView(Widget):
         super().__init__(spec)
         self.activity = activity
         self.activity_view = Adw.ToolbarView(hexpand=True, vexpand=True)
+        header = Adw.HeaderBar(
+            show_end_title_buttons=False, show_start_title_buttons=False
+        )
+        self.activity_view.add_top_bar(header)
+        settings_button = Gtk.Button(icon_name="open-menu-symbolic")
+        settings_button.connect("clicked", self.open_settings)
+        header.pack_end(settings_button)
         self.append(self.activity_view)
-
+        self.switcher: typing.Optional[Gtk.StackSwitcher] = None
+        self.stack: typing.Optional[Gtk.Stack] = None
         self.add_content()
 
     def spec_changed(self, source, data):
         self.emit("spec-changed", self)
 
     def add_content(self):
-        stack = Gtk.Stack()
-        header = Gtk.StackSwitcher(stack=stack)
-        self.activity_view.add_top_bar(header)
-        self.activity_view.set_content(stack)
+        self.stack = Gtk.Stack()
+        if self.switcher is not None:
+            self.activity_view.remove(self.switcher)
+        self.switcher = Gtk.StackSwitcher(stack=self.stack)
+        self.activity_view.add_top_bar(self.switcher)
+        self.activity_view.set_content(self.stack)
 
         activity = self.activity
 
@@ -45,33 +57,8 @@ class ActivityView(Widget):
             item_type = self.spec[item]["type"]
             page = self.get_page_for_spec(item_type, self.spec[item]["widget"])
             if page is not None:
-                stack.add_titled(page, item, name)
+                self.stack.add_titled(page, item, name)
                 page.connect("spec-changed", self.spec_changed)
-
-        try:
-            stack.add_titled(
-                ActivityView.create_powercurve(records_df, "speed"),
-                "speed_curve",
-                "Speed curve",
-            )
-        except KeyError:
-            pass
-        except ValueError:
-            pass
-        except RuntimeError:
-            pass
-        try:
-            stack.add_titled(
-                ActivityView.create_powercurve(records_df, "power"),
-                "power_curve",
-                "Power curve",
-            )
-        except KeyError:
-            pass
-        except ValueError:
-            pass
-        except RuntimeError:
-            pass
 
     def get_page_for_spec(self, item_type: str, spec: Spec) -> Widget:
         if item_type == "overview":
@@ -82,140 +69,8 @@ class ActivityView(Widget):
             return ActivityPlot(spec, self.activity)
         elif item_type == "df_viewer":
             return PandasViewer(spec, self.activity)
-
-    @staticmethod
-    def create_powercurve(df: pd.DataFrame, column: str) -> FigureWebView:
-        pc_df = df.sweat.mean_max(column, monotonic=True)
-        x = pc_df.index.total_seconds()
-        X = sweat.array_1d_to_2d(x)
-        y = pc_df["mean_max_" + column]
-
-        two_param = sweat.PowerDurationRegressor(model="2 param")
-        two_param.fit(X, y)
-
-        three_param = sweat.PowerDurationRegressor(model="3 param")
-        three_param.fit(X, y)
-
-        exponential = sweat.PowerDurationRegressor(model="exponential")
-        exponential.fit(X, y)
-
-        omni = sweat.PowerDurationRegressor(model="omni")
-        omni.fit(X, y)
-
-        data = pd.DataFrame(
-            {
-                "2 param": two_param.predict(X),
-                "3 param": three_param.predict(X),
-                "exponential": exponential.predict(X),
-                "omni": omni.predict(X),
-            }
-        )
-
-        fig = go.Figure()
-
-        fig.add_trace(
-            go.Scatter(
-                x=x,
-                y=y,
-                name="Actual",
-                mode="lines",
-            )
-        )
-        all_button = {
-            "label": "All",
-            "method": "update",
-            "args": [
-                {
-                    "visible": np.tile([True], 1 + len(data.columns)),
-                    "title": "All models",
-                    "showlegend": True,
-                }
-            ],
-        }
-
-        buttons = [all_button]
-
-        default = "3 param"
-
-        for model in data.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=x,
-                    y=data[model],
-                    name=model,
-                    mode="lines",
-                    visible=(model == default),
-                )
-            )
-            button = {
-                "label": model,
-                "method": "update",
-                "args": [
-                    {
-                        "visible": np.concatenate([[True], data.columns.isin([model])]),
-                        "title": model,
-                        "showlegend": True,
-                    }
-                ],
-            }
-            buttons.append(button)
-
-        ticks = np.array(
-            [
-                1,
-                15,
-                60,
-                300,
-                600,
-                1200,
-                1800,
-                2700,
-                3600,
-                5400,
-                3600 * 2,
-                3600 * 3,
-                3600 * 4,
-                3600 * 5,
-                3600 * 6,
-                3600 * 8,
-                3600 * 12,
-                3600 * 18,
-            ]
-        )
-
-        ticklabels = []
-        for tick in ticks:
-            hours = int(np.floor(tick / 3600))
-            tick = tick - 3600 * hours
-            mins = int(np.floor(tick / 60))
-            secs = int(tick - 60 * mins)
-            ticklabel = ""
-            if hours > 0:
-                ticklabel += f"{hours:d}h"
-            if mins > 0:
-                ticklabel += f"{mins:d}m"
-            if secs > 0:
-                ticklabel += f"{secs:d}s"
-
-            ticklabels.append(ticklabel)
-
-        fig.update_layout(
-            xaxis=dict(
-                tickmode="array",
-                tickvals=ticks,
-                ticktext=ticklabels,
-                rangemode="tozero",
-                type="log",
-            ),
-            yaxis_title=column,
-            updatemenus=[
-                {"active": list(data.columns).index(default) + 1, "buttons": buttons}
-            ],
-        )
-        fig.update()
-
-        return FigureWebView(fig)
-
+        elif item_type == "curve":
+            return CurveViewer(spec, self.activity)
 
 class PandasViewer(Widget):
     def __init__(self, spec: dict[str, Spec], activity: Activity) -> None:

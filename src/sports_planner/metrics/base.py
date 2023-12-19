@@ -25,7 +25,10 @@ class Metric:
 
     def get_metric(self, metric):
         assert metric in self.deps
-        return self.results[metric]
+        from sports_planner.metrics.activity import CurveMeta, MeanMaxMeta
+        if metric.__class__ not in [CurveMeta, MeanMaxMeta]:
+            return self.results[metric]
+        return self.results[metric.name]
 
     def get_applicable(self):
         rtn = self.applicable()
@@ -42,4 +45,4 @@ class Metric:
 
 
 class ActivityMetric(Metric):
-    """Metric computed for a specific activity"""
+    """Metric computed for a specific activity."""
