@@ -32,12 +32,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Setup python 
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' 
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Install python packages
         run: |
-          python3 -m venv ../venv
-          source ../venv/bin/activate
           pip install wheel
           pip install -e .[doc]
       - name: Build pages
