@@ -48,6 +48,7 @@ intersphinx_mapping = {
     "gi.repository": ("https://amolenaar.pages.gitlab.gnome.org/pygobject-docs", None),
     "pandas": ("https://pandas.pydata.org/docs", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "plotly": ("https://plotly.com/python-api-reference/", None),
 }
 
 inheritance_graph_attrs = dict(rankdir="TB", size='""')
