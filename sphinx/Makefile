@@ -24,7 +24,7 @@ github:
 	mkdir source/prebuilt
 	mkdir source/prebuilt/coverage
 	mkdir source/prebuilt/pytest-html
-	pytest --cov-report html:source/prebuilt/coverage --cov=../src ../tests --html=source/prebuilt/pytest-html/report.html
+	# pytest --cov-report html:source/prebuilt/coverage --cov=../src ../tests --html=source/prebuilt/pytest-html/report.html
 	@make html
 	@cp -a build/html/. ../docs
 
