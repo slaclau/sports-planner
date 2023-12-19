@@ -1,7 +1,7 @@
 [project]
 name = "sports-planner"
 version = "0.0.1"
-dependencies = ["pandas","numpy", "sweat", "garth", "PyGObject"]
+dependencies = ["pandas","numpy", "sweat", "garth", "PyGObject", "profilehooks"]
 
 [project.optional-dependencies]
 doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme"]
