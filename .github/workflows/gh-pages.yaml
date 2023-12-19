@@ -45,7 +45,7 @@ jobs:
           pip install -e .[doc]
       - name: Build pages
         run: |
-          sudo apt install make graphviz python3-gi-dev gir1.2-gtk-4.0
+          sudo apt install make graphviz python-gi-dev gir1.2-gtk-4.0
           cd sphinx
           make github
       - name: Upload artifact
