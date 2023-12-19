@@ -38,7 +38,7 @@ jobs:
         run: |
           python3 -m venv ../venv
           source ../venv/bin/activate
-          pip install -e .[doc]
+          pip install wheel -e .[doc]
       - name: Build pages
         run: |
           source ../venv/bin/activate
