@@ -7,15 +7,17 @@ from sports_planner.metrics.activity import AverageSpeed
 
 if TYPE_CHECKING:
     from sports_planner.io.files import Activity
+
 from sports_planner.metrics import *
 from sports_planner.metrics.activity import Curve, MeanMax
+from sports_planner.metrics.zones import TimeInZone, ZoneDefinitions, Zones
 from sports_planner.utils.logging import debug_time, info_time, logtime
 
 all_metrics = None
 metrics_map = None
 
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
 
 def get_all_metrics() -> set[type[base.Metric]]:
@@ -74,7 +76,7 @@ class MetricsCalculator:
 
     @debug_time
     def compute(self, recompute_all=False):
-        # recompute_all = True
+        recompute_all = True
         computed = []
         retrieved = [metric for metric in self.metrics]
         recompute = []

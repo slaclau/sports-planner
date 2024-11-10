@@ -5,6 +5,7 @@ import gi
 from sports_planner.gui.activities.main import ActivitiesView
 from sports_planner.gui.performance.main import PerformanceView
 from sports_planner.gui.planning.main import PlanningView
+from sports_planner.gui.training.main import TrainingView
 
 if TYPE_CHECKING:
     from sports_planner.main import Application
@@ -51,6 +52,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.planning_view = PlanningView(self.application)
         self.main_stack.add_child(self.planning_view)
 
+        # Planning
+        self.training_view = TrainingView(self.application)
+        self.main_stack.add_child(self.training_view)
+
         # Home
         self.home_view = Gtk.Grid()
         self.home_view.set_column_homogeneous(True)
@@ -78,6 +83,13 @@ class MainWindow(Adw.ApplicationWindow):
         self.planning_button.connect(
             "clicked",
             lambda _: self.main_stack.set_visible_child(self.planning_view),
+        )
+
+        self.training_button = Gtk.Button(label="Training")
+        self.home_view.attach(self.training_button, 1, 1, 1, 1)
+        self.training_button.connect(
+            "clicked",
+            lambda _: self.main_stack.set_visible_child(self.training_view),
         )
 
         self.main_stack.set_visible_child(self.home_view)

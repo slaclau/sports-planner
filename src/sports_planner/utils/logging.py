@@ -11,7 +11,7 @@ def logtime(start: float, action: str) -> None:
         print(f"{action} took {time.time() - start} seconds")
 
 
-F = typing.TypeVar('F', bound=typing.Callable[..., typing.Any])  # type: ignore
+F = typing.TypeVar("F", bound=typing.Callable[..., typing.Any])  # type: ignore
 
 
 def info_time(func: F) -> F:  # type: ignore
@@ -24,6 +24,7 @@ def info_time(func: F) -> F:  # type: ignore
         elapsed = time.time() - start
         logger.info(f"Function {func.__name__}{args} {kwargs} took {elapsed} seconds")
         return result
+
     return typing.cast(F, wrapper)  # type: ignore
 
 
@@ -37,4 +38,5 @@ def debug_time(func: F) -> F:  # type: ignore
         elapsed = time.time() - start
         logger.debug(f"Function {func.__name__}{args} {kwargs} took {elapsed} seconds")
         return result
+
     return typing.cast(F, wrapper)  # type: ignore

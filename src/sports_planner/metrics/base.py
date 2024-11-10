@@ -1,3 +1,6 @@
+"""This module provides a base class for activity metrics."""
+
+import typing
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
@@ -6,12 +9,29 @@ if TYPE_CHECKING:
 
 
 class Metric:
+    """Activity metric base class.
+
+    Parameters
+    ----------
+    activity
+        The activity to calculate the metric for.
+    results
+        Any metrics previously calculated.
+    """
+
+    #: The name of the metric
     name: str
+    #: The description of the metric
     description: str
+    #: The value of the metric
     value: float
+    #: Any metrics depended on by the metric
     deps: list = []
+    #: The format string for the metric
     format = ""
+    #: The unit for the metric
     unit = ""
+    #: When the method of calculating the metric was last changed
     last_changed = None
 
     def __init__(self, activity: "Activity", results=None):
@@ -21,16 +41,50 @@ class Metric:
 
     @abstractmethod
     def compute(self):
-        pass
+        """Compute the value of the metric."""
 
-    def get_metric(self, metric):
+    def get_metric(self, metric: type["Metric"]) -> typing.Any:
+        """Get the value of a previously calculated metric.
+
+        Parameters
+        ----------
+        metric
+            The metric to retrieve
+
+        Returns
+        -------
+        typing.Any
+            The value of the metric retrieved
+        """
         assert metric in self.deps
-        from sports_planner.metrics.activity import CurveMeta, MeanMaxMeta
-        if metric.__class__ not in [CurveMeta, MeanMaxMeta]:
+        from sports_planner.metrics.activity import (  # pylint: disable=C0415
+            CurveMeta,
+            MeanMaxMeta,
+        )
+        from sports_planner.metrics.zones import (
+            TimeInZoneMeta,
+            ZoneDefinitionsMeta,
+            ZonesMeta,
+        )
+
+        if metric.__class__ not in [
+            CurveMeta,
+            MeanMaxMeta,
+            TimeInZoneMeta,
+            ZoneDefinitionsMeta,
+            ZonesMeta,
+        ]:
             return self.results[metric]
         return self.results[metric.name]
 
     def get_applicable(self):
+        """Get whether this metric is applicable.
+
+        Returns
+        -------
+        bool
+            `True` if the metric is applicable otherwise `False`
+        """
         rtn = self.applicable()
         # for dep in self.deps:
         #     rtn = rtn and dep(self.activity).get_applicable()
@@ -38,11 +92,31 @@ class Metric:
 
     @abstractmethod
     def applicable(self):
-        pass
+        """Is this metric applicable.
 
-    def add_dep(self, dep):
+        Returns
+        -------
+        bool
+        """
+
+    def add_dep(self, dep: type["Metric"]):
+        """Add a dependency to this metric.
+
+        Parameters
+        ----------
+        dep
+            The metric to add as a dependency
+        """
         self.deps.append(dep)
 
 
 class ActivityMetric(Metric):
     """Metric computed for a specific activity."""
+
+    @abstractmethod
+    def applicable(self):
+        pass
+
+    @abstractmethod
+    def compute(self):
+        pass

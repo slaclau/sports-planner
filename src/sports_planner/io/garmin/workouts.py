@@ -37,6 +37,8 @@ def get_current_plan():
 
 
 def get_plan_workouts(planId, start, end):
+    if planId is None:
+        return
     return garth.connectapi(
         "/atp/athlete/calendar",
         params=dict(
@@ -87,14 +89,15 @@ def get_all_workouts(start, end):
         end = end.strftime("%Y-%m-%d")
     plan_workouts = get_plan_workouts(get_current_plan(), start, end)
     workouts = {}
-    for workout in plan_workouts:
-        try:
-            workouts[workout["scheduledWorkoutDate"]] = (
-                workout["workout"]["workoutName"],
-                workout["scheduleWorkoutId"],
-            )
-        except KeyError:
-            workouts[workout["scheduledWorkoutDate"]] = (None, None)
+    if plan_workouts is not None:
+        for workout in plan_workouts:
+            try:
+                workouts[workout["scheduledWorkoutDate"]] = (
+                    workout["workout"]["workoutName"],
+                    workout["scheduleWorkoutId"],
+                )
+            except KeyError:
+                workouts[workout["scheduledWorkoutDate"]] = (None, None)
 
     start_date = datetime.datetime.strptime(start, "%Y-%m-%d")
     end_date = datetime.datetime.strptime(end, "%Y-%m-%d")

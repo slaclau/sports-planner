@@ -2,7 +2,7 @@ from abc import ABC
 
 import numpy as np
 
-from sports_planner.metrics.activity import RunningMetric
+from sports_planner.metrics.activity import CyclingMetric, RunningMetric
 from sports_planner.metrics.base import ActivityMetric
 
 
@@ -33,11 +33,25 @@ class VO2Max(Firstbeat):
     field_name = "unknown_7"
     scale = 3.5 / 65536
     allow_zero = False
+    unit = "mL/kg/min"
+    format = ".1f"
 
 
 class RunningVO2Max(RunningMetric):
     name = "Running VO2Max (Garmin)"
     deps = RunningMetric.deps + [VO2Max]
+    allow_zero = False
+    format = ".1f"
+
+    def compute(self):
+        return self.get_metric(VO2Max)
+
+
+class CyclingVO2Max(CyclingMetric):
+    name = "Cycling VO2Max (Garmin)"
+    deps = CyclingMetric.deps + [VO2Max]
+    allow_zero = False
+    format = ".1f"
 
     def compute(self):
         return self.get_metric(VO2Max)

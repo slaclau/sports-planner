@@ -10,8 +10,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 import plotly.graph_objects as go
 from gi.repository import Adw, Gtk
-
-from sports_planner.gui.chart import FigureWebView
+from plotly_gtk.webview import FigureWebView
 
 logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)

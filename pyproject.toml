@@ -1,10 +1,15 @@
 [project]
 name = "sports-planner"
 version = "0.0.1"
-dependencies = ["pandas","numpy", "sweat", "garth", "PyGObject", "profilehooks", "plotly"]
+dependencies = ["pandas","numpy", "sweat", "garth", "PyGObject", "profilehooks", "plotly", "dill"]
 
 [project.optional-dependencies]
 doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme"]
+
+[project.scripts]
+anttrainer = "sports_planner.gui.training.main:standalone"
+activityviewer = "sports_planner.gui.activities.viewer:standalone"
+sportsplanner = "sports_planner.main:main"
 
 [tool.mypy]
 # Disallow dynamic typing
@@ -46,13 +51,23 @@ load-plugins = [
 ]
 
 [tool.pylint.MESSAGES-CONTROL]
+enable = [
+    "missing-function-docstring"
+]
 disable = [
     "invalid-name",
     "logging-fstring-interpolation"
 ]
 extension-pkg-allow-list = [
-	"wx",
 ]
+
+[tool.pylint.parameter_documentation]
+accept-no-param-doc = false
+accept-no-raise-doc = false
+accept-no-return-doc = false
+accept-no-yields-doc = false
+# Possible choices: ['sphinx', 'epytext', 'google', 'numpy', 'default']
+default-docstring-type = "numpy"
 
 [tool.flake8]
 max-line-length = 88
@@ -61,11 +76,13 @@ docstring-convention = "numpy"
 extend-select = [
     "D417",
 ]
+extend-ignore = [
+    "D102",
+]
 extend-exclude = [
-	"src/fortius_ant/_version.py"
 ]
 require-plugins = [
-    "flake8-pydocstyle",
+#    "flake8-pydocstyle",
     "flake8-pylint",
     "flake8-json",
     "flake8-bugbear",

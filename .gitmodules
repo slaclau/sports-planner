@@ -1,0 +1,6 @@
+[submodule "libraries/circular_progress_bar"]
+	path = libraries/circular_progress_bar
+	url = https://github.com/phastmike/vala-circular-progress-bar
+[submodule "libraries/live-chart"]
+	path = libraries/live-chart
+	url = https://github.com/lcallarec/live-chart

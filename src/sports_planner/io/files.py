@@ -9,6 +9,7 @@ import sweat
 
 from sports_planner.io.garmin.workouts import get_workout, to_data_frame
 from sports_planner.metrics.activity import CurveMeta, MeanMaxMeta
+from sports_planner.metrics.zones import TimeInZoneMeta, ZoneDefinitionsMeta, ZonesMeta
 
 if TYPE_CHECKING:
     from sports_planner.metrics.base import Metric
@@ -56,7 +57,13 @@ class Activity:
         if isinstance(metric, str):
             metric = get_metrics_map()[metric]
         try:
-            if metric.__class__ in [CurveMeta, MeanMaxMeta]:
+            if metric.__class__ in [
+                CurveMeta,
+                MeanMaxMeta,
+                TimeInZoneMeta,
+                ZoneDefinitionsMeta,
+                ZonesMeta,
+            ]:
                 return MetricsCalculator(self, [metric]).metrics[metric.name]
             return MetricsCalculator(self, [metric]).metrics[metric]
         except KeyError:
@@ -81,6 +88,9 @@ class Activity:
                 not_cached_func(path)
                 self.cache()
             except EOFError:
+                not_cached_func(path)
+                self.cache()
+            except pickle.UnpicklingError:
                 not_cached_func(path)
                 self.cache()
 

@@ -1,4 +1,5 @@
 """Provides a base class for a widget specified by a dict."""
+
 import tempfile
 from abc import abstractmethod
 
@@ -75,8 +76,12 @@ class Widget(Gtk.Box):
                 monospace=True,
                 buffer=self.text_buffer,
             )
-            self.text_buffer.set_language(GtkSource.LanguageManager.get_default().get_language("yaml"))
-            self.text_buffer.set_style_scheme(GtkSource.StyleSchemeManager.get_default().get_scheme("Adwaita-dark"))
+            self.text_buffer.set_language(
+                GtkSource.LanguageManager.get_default().get_language("yaml")
+            )
+            self.text_buffer.set_style_scheme(
+                GtkSource.StyleSchemeManager.get_default().get_scheme("Adwaita-dark")
+            )
             text_view.set_size_request(-1, 100)
             file = tempfile.NamedTemporaryFile()
             with open(file.name, "w") as f:

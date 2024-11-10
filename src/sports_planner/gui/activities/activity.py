@@ -8,9 +8,13 @@ import plotly.graph_objects as go  # type: ignore
 import plotly.io as pio  # type: ignore
 import sweat  # type: ignore
 
-from sports_planner.gui.activities.chart import ActivityPlot, CurveViewer, MapViewer
+from sports_planner.gui.activities.chart import (
+    ActivityPlot,
+    CurveViewer,
+    HistogramViewer,
+    MapViewer,
+)
 from sports_planner.gui.activities.overview import OverviewPage
-from sports_planner.gui.chart import FigureWebView
 from sports_planner.gui.widgets.base import Spec, Widget
 from sports_planner.io.files import Activity
 
@@ -44,7 +48,9 @@ class ActivityView(Widget):
         self.stack = Gtk.Stack()
         if self.switcher is not None:
             self.activity_view.remove(self.switcher)
-        self.switcher = Gtk.StackSwitcher(stack=self.stack)
+        switcher = Gtk.StackSwitcher(stack=self.stack)
+        self.switcher = Gtk.ScrolledWindow()
+        self.switcher.set_child(switcher)
         self.activity_view.add_top_bar(self.switcher)
         self.activity_view.set_content(self.stack)
 
@@ -56,8 +62,11 @@ class ActivityView(Widget):
             name = self.spec[item]["name"]
             item_type = self.spec[item]["type"]
             page = self.get_page_for_spec(item_type, self.spec[item]["widget"])
+            if page is None or page.get_first_child() is None:
+                page = None
             if page is not None:
                 self.stack.add_titled(page, item, name)
+
                 page.connect("spec-changed", self.spec_changed)
 
     def get_page_for_spec(self, item_type: str, spec: Spec) -> Widget:
@@ -67,10 +76,19 @@ class ActivityView(Widget):
             return MapViewer(spec, self.activity)
         elif item_type == "activity_plot":
             return ActivityPlot(spec, self.activity)
+        elif item_type == "activity_plot-gtk":
+            return ActivityPlot(spec, self.activity, gtk=True)
         elif item_type == "df_viewer":
             return PandasViewer(spec, self.activity)
         elif item_type == "curve":
             return CurveViewer(spec, self.activity)
+        elif item_type == "curve-gtk":
+            return CurveViewer(spec, self.activity, gtk=True)
+        elif item_type == "histogram":
+            return HistogramViewer(spec, self.activity)
+        elif item_type == "histogram-gtk":
+            return HistogramViewer(spec, self.activity, gtk=True)
+
 
 class PandasViewer(Widget):
     def __init__(self, spec: dict[str, Spec], activity: Activity) -> None:

@@ -157,6 +157,7 @@ class Athlete:
         n = len(self.days)
 
         desired_metrics = MetricsCalculator.order_deps([metric])
+        print(desired_metrics)
 
         @debug_time
         def get_metrics(activities: list[Activity]) -> list:  # type: ignore

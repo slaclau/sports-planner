@@ -1,11 +1,12 @@
 import datetime
 import json
-import tempfile
 
 import gi
 import plotly.express as px
+from plotly_gtk.chart import PlotlyGtk
+from plotly_gtk.utils import get_base_fig
+from plotly_gtk.webview import FigureWebView
 
-from sports_planner.gui.chart import FigureWebView
 from sports_planner.gui.widgets.base import Spec, Widget
 from sports_planner.io.files import Activity
 from sports_planner.metrics.calculate import get_metric
@@ -13,7 +14,12 @@ from sports_planner.metrics.calculate import get_metric
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
 gi.require_version("WebKit", "6.0")
-from gi.repository import Adw, Gdk, Gio, GObject, Gtk, WebKit
+import matplotlib
+from gi.repository import Adw, Gdk, Gtk, WebKit
+
+matplotlib.use("module://mplcairo.gtk_native")
+from matplotlib import pyplot as plt
+from mplcairo.gtk_native import FigureCanvasGTKCairo
 
 
 class OverviewPage(Widget):
@@ -39,6 +45,7 @@ class OverviewPage(Widget):
         frame_from.add_content()
         frame_to.set_child(child)
 
+    # @profile(filename="overview.prof")
     def add_content(self):  # type: ignore
         if self.spec["type"] == "grid":
             self.grid = Gtk.Grid(column_homogeneous=True, hexpand=True)
@@ -216,9 +223,12 @@ class OverviewWidget(Widget):
                     continue
                 format = metric.format
                 if unit == "s":
-                    raw_value = datetime.datetime.utcfromtimestamp(
-                        0
-                    ) + datetime.timedelta(seconds=float(raw_value))
+                    raw_value = datetime.timedelta(seconds=float(raw_value))
+                    unit = "td"
+                if unit == "td":
+                    raw_value = datetime.datetime.utcfromtimestamp(0) + raw_value
+                    unit = "dt"
+                if unit == "dt":
                     format = "%H:%M:%S"
                     unit = ""
                 value = f"{raw_value:{format}} "
@@ -231,7 +241,10 @@ class OverviewWidget(Widget):
             webview.load_uri(spec["link"])
             self.toolbar_view.set_content(webview)
             self.toolbar_view.set_vexpand(True)
-        elif spec["type"] == "chart":
+        elif (
+            spec["type"] == "chart"
+            and spec["column"] in self.activity.records_df.columns
+        ):
             x = self.activity.records_df.index
             y = self.activity.records_df[spec["column"]]
             fig = px.line(x=x, y=y)
@@ -246,7 +259,33 @@ class OverviewWidget(Widget):
                 FigureWebView(fig, dict(displayModeBar=False))
             )
             self.toolbar_view.set_vexpand(True)
-        if "height" in spec:
+        elif (
+            spec["type"] == "chart-gtk"
+            and spec["column"] in self.activity.records_df.columns
+        ):
+            x = self.activity.records_df.index
+            y = self.activity.records_df[spec["column"]]
+            fig = get_base_fig()
+            fig["data"].append({"x": x, "y": y, "type": "scatter", "mode": "lines"})
+            fig["layout"].update(
+                dict(
+                    margin=dict(l=0, r=0, b=0, t=0),
+                    yaxis=dict(visible=False, title=False),
+                    xaxis=dict(visible=False, title=False),
+                )
+            )
+            self.toolbar_view.set_content(PlotlyGtk(fig))
+        elif (
+            spec["type"] == "chart-mpl"
+            and spec["column"] in self.activity.records_df.columns
+        ):
+            x = self.activity.records_df.index
+            y = self.activity.records_df[spec["column"]]
+            fig, ax = plt.subplots()
+            ax.plot(x, y)
+            self.toolbar_view.set_content(FigureCanvasGTKCairo(fig))
+
+        if "height" in spec and self.toolbar_view.get_content() is not None:
             self.toolbar_view.set_size_request(-1, spec["height"])
 
 
@@ -260,7 +299,7 @@ def test(app):
                 {"type": "list", "list": ["b", "b"]},
             ],
             [{"type": "list", "list": ["c", "b"]}],
-        ]
+        ],
     }
     window.set_content(OverviewPage(spec))
     window.present()

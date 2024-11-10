@@ -1,4 +1,5 @@
 """Entrypoint to program, creates custom Adwaita Application class."""
+
 import cProfile
 import logging
 import sys
@@ -7,6 +8,8 @@ import typing
 
 import gi
 import profilehooks
+
+from sports_planner.metrics.pdm import LongTermCurve
 
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gtk  # noqa: E402
@@ -78,6 +81,7 @@ class Application(Adw.Application):
                 ),
             )
             self.win.performance_view.data["banister"] = banister
+
             GLib.idle_add(self.win.performance_view.update)
         else:
             raise TypeError

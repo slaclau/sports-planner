@@ -9,7 +9,7 @@ import sys
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Sprts Planner"
+project = "Sports Planner"
 copyright = "2023, Sebastien Laclau"
 author = "Sebastien Laclau"
 
@@ -24,6 +24,7 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.graphviz",
     "sphinx_pyreverse",
+    #    "numpydoc",
 ]
 
 autosummary_generate = True
@@ -36,8 +37,7 @@ autoclass_content = "class"
 # autodoc_class_signature = "separated"
 autodoc_member_order = "bysource"
 autodoc_docstring_signature = True
-autodoc_mock_imports = [
-]
+autodoc_mock_imports = []
 autodoc_typehints = "description"
 
 templates_path = ["_templates"]
@@ -61,8 +61,8 @@ sys.path.insert(0, os.path.abspath("../"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # html_theme = 'default'
-html_theme = "pydata_sphinx_theme"
-# html_theme = 'sphinx_rtd_theme'
+# html_theme = "pydata_sphinx_theme"
+html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_extra_path = ["prebuilt"]
 

@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk, Pango
+from profilehooks import profile
 
 from sports_planner.gui.activities.activity import ActivityView
 
@@ -106,6 +107,7 @@ class ActivitiesView(Gtk.Box):
                 self.activities_list.append(self.create_activity_row(activity))
             self.activities_list.connect("row-activated", self.display_activity)
 
+    @profile(filename="display_activity.prof")
     def display_activity(self, _: Gtk.ListBox, row: Gtk.ListBoxRow) -> None:
         if hasattr(row, "activity"):
             activity = row.activity

@@ -3,8 +3,10 @@ import plotly.express as px  # type: ignore
 import plotly.graph_objects as go  # type: ignore
 import plotly.io as pio  # type: ignore
 import sweat  # type: ignore
+from plotly_gtk.chart import PlotlyGtk
+from plotly_gtk.utils import get_base_fig
+from plotly_gtk.webview import FigureWebView
 
-from sports_planner.gui.chart import FigureWebView
 from sports_planner.gui.widgets.base import Spec, Widget
 from sports_planner.io.files import Activity
 from sports_planner.metrics.activity import Curve
@@ -25,6 +27,23 @@ class MapViewer(Widget):
             if self.spec is not None and "mapbox_style" in self.spec
             else "open-street-map"
         )
+        # fig = get_base_fig()
+        # fig["data"].append(
+        #     dict(
+        #         type="scattermapbox",
+        #         lat=self.activity.records_df["latitude"],
+        #         lon=self.activity.records_df["longitude"],
+        #         mode="lines",
+        #     )
+        # )
+        # fig["layout"]["mapbox"] = dict(
+        #     style=mapbox_style,
+        #     zoom=zoom,
+        #     center=dict(
+        #         lat=self.activity.records_df["latitude"].mean(),
+        #         lon=self.activity.records_df["longitude"].mean(),
+        #     ),
+        # )
         fig = px.line_mapbox(
             self.activity.records_df,
             lat="latitude",
@@ -39,59 +58,93 @@ class MapViewer(Widget):
 
 
 class ActivityPlot(Widget):
-    def __init__(self, spec: dict[str, Spec], activity: Activity):
+    def __init__(self, spec: dict[str, Spec], activity: Activity, gtk=False):
         super().__init__(spec)
         self.activity = activity
-        self.add_content()
+        self.add_content(gtk)
 
-    def add_content(self) -> None:
+    def add_content(self, gtk) -> None:
         columns = self.spec["columns"]
         df = self.activity.records_df
         columns = set(df.columns).intersection(columns)
-        fig = go.Figure()
+        fig = get_base_fig()
         i = 0
         for column in columns:
             i += 1
             if i == 1:
-                fig.add_trace(
-                    go.Scatter(x=df.index, y=df[column], name=column, mode="lines")
+                fig["data"].append(
+                    dict(
+                        x=df.index,
+                        y=df[column],
+                        name=column,
+                        mode="lines",
+                        type="scatter",
+                    )
                 )
-                fig.update_layout(**{f"yaxis": dict(title=column)})
+                fig["layout"][f"yaxis"] = dict(title=dict(text=column))
             else:
-                fig.add_trace(
-                    go.Scatter(
+                fig["data"].append(
+                    dict(
                         x=df.index,
                         y=df[column],
                         yaxis=f"y{i}",
                         name=column,
                         mode="lines",
+                        type="scatter",
                     )
                 )
-                fig.update_layout(
-                    **{
-                        f"yaxis{i}": dict(
-                            overlaying="y",
-                            side="left",
-                            autoshift=True,
-                            anchor="free",
-                            title=column,
-                        )
-                    }
+                fig["layout"][f"yaxis{i}"] = dict(
+                    overlaying="y",
+                    side="left",
+                    autoshift=True,
+                    anchor="free",
+                    title=dict(text=column),
                 )
+        if gtk:
+            chart = PlotlyGtk(fig)
+            chart.set_vexpand(True)
+            chart.set_hexpand(True)
+            self.append(chart)
+        else:
+            webview = FigureWebView(fig)
+            webview.set_vexpand(True)
+            webview.set_hexpand(True)
+            self.append(webview)
 
-        webview = FigureWebView(fig)
-        webview.set_vexpand(True)
-        webview.set_hexpand(True)
-        self.append(webview)
+
+class HistogramViewer(Widget):
+    def __init__(self, spec: dict[str, Spec], activity: Activity, gtk=False):
+        super().__init__(spec)
+        self.activity = activity
+        self.add_content(gtk)
+
+    def add_content(self, gtk) -> None:
+        column = self.spec["column"]
+        if column not in self.activity.records_df.columns:
+            return None
+
+        fig = get_base_fig()
+
+        fig["data"].append(dict(x=self.activity.records_df[column], type="histogram"))
+        if gtk:
+            chart = PlotlyGtk(fig)
+            chart.set_vexpand(True)
+            chart.set_hexpand(True)
+            self.append(chart)
+        else:
+            webview = FigureWebView(fig)
+            webview.set_vexpand(True)
+            webview.set_hexpand(True)
+            self.append(webview)
 
 
 class CurveViewer(Widget):
-    def __init__(self, spec: dict[str, Spec], activity: Activity):
+    def __init__(self, spec: dict[str, Spec], activity: Activity, gtk=False):
         super().__init__(spec)
         self.activity = activity
-        self.add_content()
+        self.add_content(gtk)
 
-    def add_content(self) -> None:
+    def add_content(self, gtk) -> None:
         column = self.spec["column"]
         curve = self.activity.get_metric(Curve[column])
         if curve is None:
@@ -100,16 +153,9 @@ class CurveViewer(Widget):
         y = curve["y"]
         data = curve["predictions"]
 
-        fig = go.Figure()
+        fig = get_base_fig()
 
-        fig.add_trace(
-            go.Scatter(
-                x=x,
-                y=y,
-                name="Actual",
-                mode="lines",
-            )
-        )
+        fig["data"].append(dict(x=x, y=y, name="Actual", mode="lines", type="scatter"))
         all_button = {
             "label": "All",
             "method": "update",
@@ -124,16 +170,17 @@ class CurveViewer(Widget):
 
         buttons = [all_button]
 
-        default = "3 param"
+        default = "3 param" if "3 param" in data.columns else "omni"
 
         for model in data.columns:
-            fig.add_trace(
-                go.Scatter(
+            fig["data"].append(
+                dict(
                     x=x,
                     y=data[model],
                     name=model,
                     mode="lines",
                     visible=(model == default),
+                    type="scatter",
                 )
             )
             button = {
@@ -188,22 +235,32 @@ class CurveViewer(Widget):
 
             ticklabels.append(ticklabel)
 
-        fig.update_layout(
-            xaxis=dict(
-                tickmode="array",
-                tickvals=ticks,
-                ticktext=ticklabels,
-                rangemode="tozero",
-                type="log",
-            ),
-            yaxis_title=column,
-            updatemenus=[
-                {"active": list(data.columns).index(default) + 1, "buttons": buttons}
-            ],
+        fig["layout"].update(
+            dict(
+                xaxis=dict(
+                    tickmode="array",
+                    tickvals=ticks,
+                    ticktext=ticklabels,
+                    rangemode="tozero",
+                    type="log",
+                ),
+                yaxis_title_text=column,
+                updatemenus=[
+                    {
+                        "active": list(data.columns).index(default) + 1,
+                        "buttons": buttons,
+                    }
+                ],
+            )
         )
-        fig.update()
 
-        webview = FigureWebView(fig)
-        webview.set_vexpand(True)
-        webview.set_hexpand(True)
-        self.append(webview)
+        if gtk:
+            chart = PlotlyGtk(fig)
+            chart.set_vexpand(True)
+            chart.set_hexpand(True)
+            self.append(chart)
+        else:
+            webview = FigureWebView(fig)
+            webview.set_vexpand(True)
+            webview.set_hexpand(True)
+            self.append(webview)
