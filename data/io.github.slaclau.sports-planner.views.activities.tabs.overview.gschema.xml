@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.overview">
+    <key name="tiles" type="as">
+      <summary>Tiles to show.</summary>
+      <description>
+        Tiles to show on the overview. These are configured with their own schemas.
+      </description>
+      <default>[]</default>
+    </key>
+  </schema>
+</schemalist>

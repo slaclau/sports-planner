@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+  <schema path="/io/github/slaclau/sports-planner/views/activities/" id="io.github.slaclau.sports-planner.views.activities">
+    <key name="tabs" type="as">
+      <summary>List of tabs for the activities view.</summary>
+      <description>List of tabs for the activities view. Each entry is a tab and they are ordered as in this list.
+        The tab is configured in '/io/github/slaclau/sports-planner/views/activities/tabs/&lt;name&gt;
+        where &lt;name&gt; is an entry in this key./</description>
+      <default>['overview']</default>
+    </key>
+  </schema>
+</schemalist>

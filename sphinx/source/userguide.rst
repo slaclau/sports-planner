@@ -5,3 +5,4 @@ User Guide
    :maxdepth: 2
    
    userguide/installation
+   userguide/metrics

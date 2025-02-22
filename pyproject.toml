@@ -1,15 +1,45 @@
 [project]
 name = "sports-planner"
-version = "0.0.1"
-dependencies = ["pandas","numpy", "sweat", "garth", "PyGObject", "profilehooks", "plotly", "dill"]
+dynamic = ["version"]
+readme = "README.md"
+dependencies = ["sports-planner-lib", "PyGObject", "profilehooks", "plotly", "plotly-gtk", "libantplus", "numpy", "pyYAML", "icalendar"]
+
+[build-system]
+requires = [
+    "meson-python",
+    "setuptools>=64",
+    "setuptools_scm>=8",
+    "setuptools_scm_custom",
+    "sphinx",
+    "sphinx-pyreverse",
+    "pydata-sphinx-theme",
+    "rstxml2docbook@git+https://github.com/slaclau/rstxml2docbook"
+]
+build-backend = "mesonpy"
+
+[tool.meson-python.args]
+install = ['--wheel']
 
 [project.optional-dependencies]
-doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme"]
+tbr = ["sweat", "sqlalchemy"]
+test = []
+lint = ["black", "isort", "flake8", "flake8-pyproject", "flake8-pylint", "flake8-json", "flake8-bugbear", "mypy", "mypy-json-report", "deptry", "pygobject-stubs"]
+doc = ["sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "rstxml2docbook@git+https://github.com/slaclau/rstxml2docbook"]
+dev = ["sports-planner[doc, lint, test]"]
 
 [project.scripts]
-anttrainer = "sports_planner.gui.training.main:standalone"
-activityviewer = "sports_planner.gui.activities.viewer:standalone"
-sportsplanner = "sports_planner.main:main"
+ant-trainer = "sports_planner.gui.training.main:standalone"
+activity-viewer = "sports_planner.gui.activities.viewer:standalone"
+sports-planner = "sports_planner.main:main"
+
+[tool.setuptools_scm]
+version_scheme = "setuptools_scm_custom:custom"
+local_scheme = "setuptools_scm_custom:custom_local"
+version_file = "src/sports_planner/_version.py"
+
+[tool.setuptools_scm_custom]
+version_scheme = "[{tag}?{distance}==0:{next_tag}][.dev{distance}?{distance}>0]"
+local_scheme = "[+{node}?{distance}>0][[+?{distance}==0:.]d{node_date}?{dirty}==True]"
 
 [tool.mypy]
 # Disallow dynamic typing
@@ -88,3 +118,13 @@ require-plugins = [
     "flake8-bugbear",
 ]
 docstring_style = "numpy"
+
+[tool.deptry]
+pep621_dev_dependency_groups = ["doc", "lint", "test", "dev"]
+
+[tool.commitizen]
+name = "cz-trailers"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "scm"
+major_version_zero = true

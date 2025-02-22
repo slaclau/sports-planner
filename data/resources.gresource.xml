@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/slaclau/sports-planner/">
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/cycling-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">gtk/main.ui</file>
+    <file preprocess="xml-stripblanks">gtk/menus.ui</file>
+    <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
+    <file preprocess="xml-stripblanks">gtk/activities/activities-view.ui</file>
+    <file preprocess="xml-stripblanks">gtk/activities/activity-list-item.ui</file>
+    <file preprocess="xml-stripblanks">gtk/activities/activity-view.ui</file>
+    <file preprocess="xml-stripblanks">gtk/activities/calendar.ui</file>
+    <file preprocess="xml-stripblanks">gtk/activities/tab-creation-dialog.ui</file>
+    <file preprocess="xml-stripblanks">gtk/plan/plan-view.ui</file>
+  </gresource>
+</gresources>

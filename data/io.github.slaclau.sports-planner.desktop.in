@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Sports Planner
+Exec=sports-planner
+Icon=io.github.slaclau.sports-planner
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=GTK;
+StartupNotify=true
+DBusActivatable=true

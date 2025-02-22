@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+  <schema id="io.github.slaclau.sports-planner.views.activities.tab">
+    <key name="title" type="s">
+      <summary>Display name for the tab.</summary>
+      <description>
+        Display name for the tab. This does not need to be unique there is potential for confusion if it is not.
+      </description>
+      <default>'Overview'</default>
+    </key>
+    <key name="type" type="s">
+      <summary>Type of tab.</summary>
+      <description>
+        Type of tab. This represents a specific type of chart (or an overview tab).
+      </description>
+      <choices>
+        <choice value="overview"/>
+        <choice value="curve"/>
+        <choice value="histogram"/>
+        <choice value="map"/>
+        <choice value="activity-plot"/>
+        <choice value="activity-plot-gtk"/>
+      </choices>
+      <default>'overview'</default>
+    </key>
+  </schema>
+</schemalist>

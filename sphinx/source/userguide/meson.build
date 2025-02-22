@@ -1,0 +1,1 @@
+sphinx_src += files(['installation.rst', 'metrics.rst'])

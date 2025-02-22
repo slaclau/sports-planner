@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.activity-plot">
+    <key name="columns" type="as">
+      <summary>Columns to plot.</summary>
+      <description>
+        Columns to plot. Non-existent columns are silently ignored.
+      </description>
+      <default>["speed", "power", "cadence", "heartrate"]</default>
+    </key>
+  </schema>
+</schemalist>

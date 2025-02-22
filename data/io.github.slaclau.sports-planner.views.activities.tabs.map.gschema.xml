@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.map">
+    <key name="zoom" type="i">
+      <summary>Zoom level for the map.</summary>
+      <description>
+        Zoom level for the map. This is used by plotly px.line_mapbox.
+      </description>
+      <default>13</default>
+    </key>
+    <key name="mapbox-style" type="s">
+      <summary>Mapbox style.</summary>
+      <description>
+        Mapbox style. This is used by plotly px.line_mapbox.
+      </description>
+      <default>"open-street-map"</default>
+    </key>
+  </schema>
+</schemalist>

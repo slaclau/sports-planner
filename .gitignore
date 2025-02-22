@@ -36,7 +36,24 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-/main.bin
-/main.build
+# Profiling files
 *.prof
 
+# Auto generated ui files
+*.ui
+
+# Compiled gresource files
+*.gresource
+
+# venv
+.venv
+
+# IDE config
+*.idea
+
+# old stuff
+old
+
+# Sphinx documentation
+sphinx/build/
+sphinx/source/generated

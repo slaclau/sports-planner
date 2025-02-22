@@ -1,0 +1,43 @@
+digraph "packages" {
+rankdir=BT
+charset="utf-8"
+"src.sports_planner" [color="black", label=<src.sports_planner>, shape="box", style="solid"];
+"src.sports_planner.athlete" [color="black", label=<src.sports_planner.athlete>, shape="box", style="solid"];
+"src.sports_planner.gui" [color="black", label=<src.sports_planner.gui>, shape="box", style="solid"];
+"src.sports_planner.gui.activities" [color="black", label=<src.sports_planner.gui.activities>, shape="box", style="solid"];
+"src.sports_planner.gui.activities.activity" [color="black", label=<src.sports_planner.gui.activities.activity>, shape="box", style="solid"];
+"src.sports_planner.gui.activities.chart" [color="black", label=<src.sports_planner.gui.activities.chart>, shape="box", style="solid"];
+"src.sports_planner.gui.activities.main" [color="black", label=<src.sports_planner.gui.activities.main>, shape="box", style="solid"];
+"src.sports_planner.gui.activities.overview" [color="black", label=<src.sports_planner.gui.activities.overview>, shape="box", style="solid"];
+"src.sports_planner.gui.chart" [color="black", label=<src.sports_planner.gui.chart>, shape="box", style="solid"];
+"src.sports_planner.gui.dialogues" [color="black", label=<src.sports_planner.gui.dialogues>, shape="box", style="solid"];
+"src.sports_planner.gui.main" [color="black", label=<src.sports_planner.gui.main>, shape="box", style="solid"];
+"src.sports_planner.gui.performance" [color="black", label=<src.sports_planner.gui.performance>, shape="box", style="solid"];
+"src.sports_planner.gui.performance.main" [color="black", label=<src.sports_planner.gui.performance.main>, shape="box", style="solid"];
+"src.sports_planner.gui.planning" [color="black", label=<src.sports_planner.gui.planning>, shape="box", style="solid"];
+"src.sports_planner.gui.planning.main" [color="black", label=<src.sports_planner.gui.planning.main>, shape="box", style="solid"];
+"src.sports_planner.gui.status" [color="black", label=<src.sports_planner.gui.status>, shape="box", style="solid"];
+"src.sports_planner.gui.widgets" [color="black", label=<src.sports_planner.gui.widgets>, shape="box", style="solid"];
+"src.sports_planner.gui.widgets.base" [color="black", label=<src.sports_planner.gui.widgets.base>, shape="box", style="solid"];
+"src.sports_planner.io" [color="black", label=<src.sports_planner.io>, shape="box", style="solid"];
+"src.sports_planner.io.files" [color="black", label=<src.sports_planner.io.files>, shape="box", style="solid"];
+"src.sports_planner.io.garmin" [color="black", label=<src.sports_planner.io.garmin>, shape="box", style="solid"];
+"src.sports_planner.io.garmin.workouts" [color="black", label=<src.sports_planner.io.garmin.workouts>, shape="box", style="solid"];
+"src.sports_planner.io.sync" [color="black", label=<src.sports_planner.io.sync>, shape="box", style="solid"];
+"src.sports_planner.io.sync.base" [color="black", label=<src.sports_planner.io.sync.base>, shape="box", style="solid"];
+"src.sports_planner.io.sync.garmin" [color="black", label=<src.sports_planner.io.sync.garmin>, shape="box", style="solid"];
+"src.sports_planner.main" [color="black", label=<src.sports_planner.main>, shape="box", style="solid"];
+"src.sports_planner.metrics" [color="black", label=<src.sports_planner.metrics>, shape="box", style="solid"];
+"src.sports_planner.metrics.activity" [color="black", label=<src.sports_planner.metrics.activity>, shape="box", style="solid"];
+"src.sports_planner.metrics.athlete" [color="black", label=<src.sports_planner.metrics.athlete>, shape="box", style="solid"];
+"src.sports_planner.metrics.base" [color="black", label=<src.sports_planner.metrics.base>, shape="box", style="solid"];
+"src.sports_planner.metrics.calculate" [color="black", label=<src.sports_planner.metrics.calculate>, shape="box", style="solid"];
+"src.sports_planner.metrics.coggan" [color="black", label=<src.sports_planner.metrics.coggan>, shape="box", style="solid"];
+"src.sports_planner.metrics.garmin" [color="black", label=<src.sports_planner.metrics.garmin>, shape="box", style="solid"];
+"src.sports_planner.metrics.govss" [color="black", label=<src.sports_planner.metrics.govss>, shape="box", style="solid"];
+"src.sports_planner.metrics.pmc" [color="black", label=<src.sports_planner.metrics.pmc>, shape="box", style="solid"];
+"src.sports_planner.utils" [color="black", label=<src.sports_planner.utils>, shape="box", style="solid"];
+"src.sports_planner.utils.format" [color="black", label=<src.sports_planner.utils.format>, shape="box", style="solid"];
+"src.sports_planner.utils.logging" [color="black", label=<src.sports_planner.utils.logging>, shape="box", style="solid"];
+"src.sports_planner.utils.sort" [color="black", label=<src.sports_planner.utils.sort>, shape="box", style="solid"];
+}

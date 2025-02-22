@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.overview.tile">
+    <key name="start-column" type="i">
+      <summary>Column to start in.</summary>
+      <description>
+        Column to start in. Valid values are from 0 to the configured maximum number of columns.
+      </description>
+      <default>0</default>
+    </key>
+    <key name="columns" type="i">
+      <summary>Columns to span.</summary>
+      <description>
+        Column to span. Valid values are from 1 to the configured maximum number of columns minus start-column.
+      </description>
+      <default>1</default>
+    </key>
+    <key name="height" type="i">
+      <summary>Height in rows.</summary>
+      <description>
+        Height in rows. This is multiplied by the configured row height to determine the height of the tile.
+      </description>
+      <default>5</default>
+    </key>
+    <key name="title" type="s">
+      <summary>Tile title.</summary>
+      <description>
+        Tile title. This is shown on the tile if it exists.
+      </description>
+      <default>""</default>
+    </key>
+    <key name="type" type="s">
+      <summary>Tile configuration.</summary>
+      <description>
+        Tile configuration. This is provided as a dictionary.
+      </description>
+      <default>"metrics-list"</default>
+      <choices>
+        <choice value="metrics-list"/>
+      </choices>
+    </key>
+  </schema>
+</schemalist>

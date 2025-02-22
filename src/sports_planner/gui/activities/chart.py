@@ -1,32 +1,42 @@
+from typing import TYPE_CHECKING
+
+import gi
 import numpy as np
 import plotly.express as px  # type: ignore
 import plotly.graph_objects as go  # type: ignore
 import plotly.io as pio  # type: ignore
+import sports_planner_lib.db.schemas
 import sweat  # type: ignore
 from plotly_gtk.chart import PlotlyGtk
 from plotly_gtk.utils import get_base_fig
 from plotly_gtk.webview import FigureWebView
+from sports_planner_lib.db.schemas import Activity
+from sports_planner_lib.metrics.pdm import Curve
 
-from sports_planner.gui.widgets.base import Spec, Widget
-from sports_planner.io.files import Activity
-from sports_planner.metrics.activity import Curve
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gio, Gtk
+
+if TYPE_CHECKING:
+    from sports_planner.gui.main import Context
 
 
-class MapViewer(Widget):
-    def __init__(self, spec: dict[str, Spec], activity: Activity):
-        super().__init__(spec)
-        self.activity = activity
+class MapViewer(Gtk.Box):
+    def __init__(self, name, context: "Context"):
+        super().__init__()
+        self.settings = Gio.Settings(
+            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.map",
+            path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
+        )
+        self.settings.connect("changed", lambda s, k: self.add_content())
+        self.context = context
+        self.context.connect("activity-changed", lambda context: self.add_content())
         self.add_content()
 
     def add_content(self) -> None:
-        zoom = (
-            self.spec["zoom"] if self.spec is not None and "zoom" in self.spec else 13
-        )
-        mapbox_style = (
-            self.spec["open-street-map"]
-            if self.spec is not None and "mapbox_style" in self.spec
-            else "open-street-map"
-        )
+        if self.get_first_child():
+            self.remove(self.get_first_child())
+        zoom = self.settings.get_int("zoom")
+        mapbox_style = self.settings.get_string("mapbox-style")
         # fig = get_base_fig()
         # fig["data"].append(
         #     dict(
@@ -44,28 +54,48 @@ class MapViewer(Widget):
         #         lon=self.activity.records_df["longitude"].mean(),
         #     ),
         # )
+        activity = self.context.athlete.get_activity_full(
+            self.context.activity,
+        )
         fig = px.line_mapbox(
-            self.activity.records_df,
+            activity.records_df,
             lat="latitude",
             lon="longitude",
             mapbox_style=mapbox_style,
             zoom=zoom,
         )
+        fig.layout.margin = dict(b=0, l=0, r=0, t=0)
         webview = FigureWebView(fig)
         webview.set_vexpand(True)
         webview.set_hexpand(True)
         self.append(webview)
 
 
-class ActivityPlot(Widget):
-    def __init__(self, spec: dict[str, Spec], activity: Activity, gtk=False):
-        super().__init__(spec)
-        self.activity = activity
-        self.add_content(gtk)
+class ActivityPlot(Gtk.Box):
+    def __init__(self, name, context: "Context", gtk=False):
+        super().__init__()
+        self.gtk = gtk
 
-    def add_content(self, gtk) -> None:
-        columns = self.spec["columns"]
-        df = self.activity.records_df
+        self.settings = Gio.Settings(
+            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.activity-plot",
+            path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
+        )
+        self.settings.connect("changed", lambda s, k: self.add_content())
+        self.context = context
+        self.context.connect("activity-changed", lambda context: self.add_content())
+        self.add_content()
+
+    def add_content(self) -> None:
+        gtk = self.gtk
+
+        if self.get_first_child():
+            self.remove(self.get_first_child())
+        columns = self.settings.get_value("columns").unpack()
+
+        activity = self.context.athlete.get_activity_full(
+            self.context.activity,
+        )
+        df = activity.records_df
         columns = set(df.columns).intersection(columns)
         fig = get_base_fig()
         i = 0
@@ -100,6 +130,7 @@ class ActivityPlot(Widget):
                     anchor="free",
                     title=dict(text=column),
                 )
+
         if gtk:
             chart = PlotlyGtk(fig)
             chart.set_vexpand(True)
@@ -112,8 +143,8 @@ class ActivityPlot(Widget):
             self.append(webview)
 
 
-class HistogramViewer(Widget):
-    def __init__(self, spec: dict[str, Spec], activity: Activity, gtk=False):
+class HistogramViewer(Gtk.Box):
+    def __init__(self, activity: Activity, gtk=False):
         super().__init__(spec)
         self.activity = activity
         self.add_content(gtk)
@@ -138,8 +169,8 @@ class HistogramViewer(Widget):
             self.append(webview)
 
 
-class CurveViewer(Widget):
-    def __init__(self, spec: dict[str, Spec], activity: Activity, gtk=False):
+class CurveViewer:
+    def __init__(self, activity: Activity, gtk=False):
         super().__init__(spec)
         self.activity = activity
         self.add_content(gtk)

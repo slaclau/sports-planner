@@ -11,7 +11,6 @@ Table of Contents
 
    userguide
    api-reference
-   pytest
 
 Indices and tables
 ==================

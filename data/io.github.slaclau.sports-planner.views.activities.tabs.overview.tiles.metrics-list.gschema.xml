@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.overview.tiles.metrics-list">
+    <key name="metrics" type="as">
+      <summary>Metrics to show.</summary>
+      <description>
+        Metrics to show.
+      </description>
+      <default>[]</default>
+    </key>
+  </schema>
+</schemalist>
