@@ -5,6 +5,7 @@ sphinx_xml = custom_target(
   input: sphinx_src,
   output: 'xml',
   command: ['sphinx-build', '-b', 'xml', meson.current_source_dir() / 'source', 'xml'],
+  build_by_default: true,
 )
 
 if get_option('wheel')
@@ -17,7 +18,7 @@ yelp_xml = custom_target(
   input: sphinx_xml,
   output: 'index.docbook',
   command: ['rstxml2docbook', 'xml/userguide.xml', '-ns', '-o', '@OUTPUT@'],
-  build_by_default: false,
+  build_by_default: true,
   install: true,
   install_dir: yelp_dir
 )
