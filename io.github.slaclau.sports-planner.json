@@ -23,18 +23,23 @@
         "*.a"
     ],
     "modules" : [
-	"build.json",
+        "build.json",
+	"dependencies.json",
         {
             "name" : "sports-planner",
-            "builddir" : true,
             "buildsystem" : "meson",
             "sources" : [
                 {
                     "type" : "git",
                     "url" : "https://github.com/slaclau/sports-planner"
                 }
+            ],
+            "config-opts" : [
+                "--libdir=lib"
             ]
-        },
-	"dependencies.json"
-    ]
+        }
+    ],
+    "build-options" : {
+        "env" : {        }
+    }
 }

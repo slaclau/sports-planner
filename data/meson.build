@@ -19,10 +19,12 @@ schemas = c.stdout().strip().split('\n')
 
 if get_option('wheel')
   install_data(schemas,
-    install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
+    install_dir: py_installation.get_install_dir() / 'sports_planner' / 'data',
   )
 else
-
+  install_data(schemas,
+    install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
+  )
 endif
 
 compile_schemas = find_program('glib-compile-schemas', required: false, disabler: true)
@@ -34,18 +36,18 @@ pkgdatadir = get_option('prefix') / get_option('datadir') / meson.project_name()
 moduledir = pkgdatadir / 'test'
 
 
-if get_option('wheel')
-  gnome.compile_resources('resources',
-    'resources.gresource.xml',
-    gresource_bundle: true,
-    install: true,
-    install_dir: pkgdatadir,
-  )
-else
-  gnome.compile_resources('resources',
-    'resources.gresource.xml',
-    gresource_bundle: true,
-    install: true,
-    install_dir: py_installation.get_install_dir() / 'sports_planner' / 'data',
-  )
-endif
+#if get_option('wheel')
+gnome.compile_resources('resources',
+  'resources.gresource.xml',
+  gresource_bundle: true,
+  install: true,
+  install_dir: pkgdatadir,
+)
+#else
+#  gnome.compile_resources('resources',
+#    'resources.gresource.xml',
+#    gresource_bundle: true,
+#    install: true,
+#    install_dir: py_installation.get_install_dir() / 'sports_planner' / 'data',
+#  )
+#endif
