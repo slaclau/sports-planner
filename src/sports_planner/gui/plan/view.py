@@ -36,6 +36,7 @@ class PlanView(Gtk.Box):
             logger.debug(
                 f"adding activity {activity.activity_id} - {activity.name} @ {activity.timestamp}"
             )
+
             event = icalendar.Event()
             event["summary"] = activity.name
             event["description"] = activity.name
@@ -45,8 +46,9 @@ class PlanView(Gtk.Box):
                 seconds=activity.total_timer_time
             )
             ical_string = event.to_ical().decode("utf-8")
+
             gtkcal_event = GtkCal.Event.new(
-                ICalGLib.Component.new_from_string(event.to_ical().decode("utf-8"))
+                ICalGLib.Component.new_from_string(ical_string)
             )
             gtkcal_event.set_color(green)
             self.month_view.add_event(gtkcal_event)

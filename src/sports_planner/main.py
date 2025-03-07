@@ -12,8 +12,10 @@ from gi.repository import Gio
 
 from sports_planner.gui.app import SportsPlannerApplication, INSTALL_TYPE
 
-logger = logging.getLogger(__name__)
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
 
+logger = logging.getLogger(__name__)
 
 def main():
     resource = None

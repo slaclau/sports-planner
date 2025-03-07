@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
 class Overview(Gtk.Widget):
     def __init__(self, name, context: "Context"):
         super().__init__()
@@ -61,10 +62,8 @@ class Overview(Gtk.Widget):
     def update_start_constraint(self, tile):
         start_multiplier = tile.start_column / self.n_columns
         start_constant = (
-                self.margin
-                + tile.start_column
-                * (self.spacing - 2 * self.margin)
-                / self.n_columns
+            self.margin
+            + tile.start_column * (self.spacing - 2 * self.margin) / self.n_columns
         )
         start_constraint = Gtk.Constraint(
             multiplier=start_multiplier,
@@ -80,7 +79,6 @@ class Overview(Gtk.Widget):
             self.layout_manager.remove_constraint(tile.start_constraint)
         self.layout_manager.add_constraint(start_constraint)
         tile.start_constraint = start_constraint
-
 
     def add_content(self):
         drop_target = Gtk.DropTarget.new(Tile, Gdk.DragAction.MOVE)
@@ -117,7 +115,6 @@ class Overview(Gtk.Widget):
                     self.layout_manager.remove_constraint(col[0].top_constraint)
                 col[0].top_constraint = constraint
                 self.layout_manager.add_constraint(constraint)
-                col[0].top_constraint = constraint
 
             for i in range(1, len(col)):
                 if not hasattr(col[i], "start_row"):
@@ -140,10 +137,11 @@ class Overview(Gtk.Widget):
                                     relation=Gtk.ConstraintRelation.GE,
                                 )
                                 if hasattr(col[i], "top_constraint"):
-                                    self.layout_manager.remove_constraint(col[i].top_constraint)
+                                    self.layout_manager.remove_constraint(
+                                        col[i].top_constraint
+                                    )
                                 col[i].top_constraint = constraint
                                 self.layout_manager.add_constraint(constraint)
-                                col[i].top_constraint = constraint
 
                     if not (hasattr(col[i], "start_row")):
                         col[i].start_row = col[i - 1].start_row + col[i - 1].height
@@ -154,12 +152,10 @@ class Overview(Gtk.Widget):
                             source=col[i - 1],
                             source_attribute=Gtk.ConstraintAttribute.BOTTOM,
                         )
-                        self.layout_manager.add_constraint(constraint)
                         if hasattr(col[i], "top_constraint"):
                             self.layout_manager.remove_constraint(col[i].top_constraint)
                         col[i].top_constraint = constraint
                         self.layout_manager.add_constraint(constraint)
-                        col[i].top_constraint = constraint
 
     def add_tile(self, tile: str):
         tile_object = Tile(tile, self)

@@ -2,18 +2,17 @@ import logging
 
 import gi
 
-from sports_planner.gui.app import Context
-from sports_planner.gui.logging import LabelHandler, ProgressBarHandler
-
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Adw, Gio, Gtk, Gdk
 
+from sports_planner.gui.app import Context
+from sports_planner.gui.logging import LabelHandler, ProgressBarHandler
 from sports_planner.main import INSTALL_TYPE
+from sports_planner.gui.train.main import TrainingView
 from sports_planner.gui.activities.view import ActivitiesView
 from sports_planner.gui.plan.view import PlanView
-from sports_planner.gui.train.main import TrainingView
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +60,8 @@ class SportsPlannerWindow(Adw.ApplicationWindow):
 
         athlete_logger = logging.getLogger("sports_planner_lib.athlete")
         athlete_logger.setLevel(logging.DEBUG)
-        athlete_logger.addHandler(LabelHandler(self.sync_label))
-        athlete_logger.addHandler(ProgressBarHandler(self.sync_progress))
+        athlete_logger.addHandler(LabelHandler(self.sync_label, level=logging.DEBUG))
+        athlete_logger.addHandler(ProgressBarHandler(self.sync_progress, level=logging.DEBUG))
 
     def _sync(self):
         self.sync_button.set_sensitive(False)
