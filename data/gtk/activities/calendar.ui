@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.94.1 -->
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="Calendar" parent="GtkBox">
+    <child>
+      <object class="GtkCalendar"/>
+    </child>
+  </template>
+</interface>

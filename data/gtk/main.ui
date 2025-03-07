@@ -1,0 +1,300 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.94.1 -->
+<interface>
+  <!-- interface-name main.ui -->
+  <requires lib="gio" version="2.0"/>
+  <requires lib="gtk" version="4.12"/>
+  <requires lib="libadwaita" version="1.4"/>
+  <template class="SportsPlannerWindow" parent="AdwApplicationWindow">
+    <property name="show-menubar">True</property>
+    <child>
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-title">False</property>
+            <child type="start">
+              <object class="GtkButton" id="sync-button">
+                <property name="action-name">win.sync</property>
+                <property name="icon-name">emblem-synchronizing-symbolic</property>
+              </object>
+            </child>
+            <child type="start">
+              <object class="GtkProgressBar" id="sync-progress">
+                <property name="valign">center</property>
+                <property name="visible">False</property>
+              </object>
+            </child>
+            <child type="start">
+              <object class="GtkLabel" id="sync-label"/>
+            </child>
+            <child type="end">
+              <object class="GtkMenuButton">
+                <property name="icon-name">open-menu-symbolic</property>
+                <!-- Custom object fragments -->
+                <property name="menu-model">primary</property>
+                <property name="primary">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwNavigationSplitView">
+            <property name="content">
+              <object class="AdwNavigationPage">
+                <property name="child">
+                  <object class="AdwToolbarView">
+                    <child>
+                      <object class="AdwTabView" id="main-tab-view">
+                        <property name="selected-page">home-page</property>
+                        <child>
+                          <object class="AdwTabPage" id="home-page">
+                            <property name="child">
+                              <object class="AdwStatusPage">
+                                <property name="title">Home</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwTabPage" id="athletes-page"/>
+                        </child>
+                        <child>
+                          <object class="AdwTabPage" id="activities-page">
+                            <property name="child">
+                              <object class="ActivitiesView" id="activities-view"/>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwTabPage" id="performance-page"/>
+                        </child>
+                        <child>
+                          <object class="AdwTabPage" id="plan-page">
+                            <property name="child">
+                              <object class="PlanView" id="plan-view"/>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwTabPage" id="train-page">
+                            <property name="child">
+                              <object class="GtkBox" id="train-box"/>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwTabPage" id="settings-page"/>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="title">main-pane</property>
+              </object>
+            </property>
+            <property name="max-sidebar-width">100.0</property>
+            <property name="min-sidebar-width">100.0</property>
+            <property name="sidebar">
+              <object class="AdwNavigationPage">
+                <property name="title">navigation-sidebar</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="margin-bottom">10</property>
+                    <property name="margin-end">10</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-top">10</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">10</property>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">win.go-home</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">user-home-symbolic</property>
+                                <property name="pixel-size">48</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="label">Home</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">win.go-athletes</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">avatar-default-symbolic</property>
+                                <property name="pixel-size">48</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="label">Athletes</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">win.go-activities</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">cycling-symbolic</property>
+                                <property name="pixel-size">48</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="label">Activities</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">win.go-performance</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">power-profile-performance-symbolic</property>
+                                <property name="pixel-size">48</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="label">Performance</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">win.go-plan</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">calendar-month-symbolic</property>
+                                <property name="pixel-size">48</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="label">Plan</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">win.go-train</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="pixel-size">48</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="label">Train</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">app.open-settings</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">settings-symbolic</property>
+                                <property name="pixel-size">48</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="label">Settings</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <menu id="primary">
+    <section>
+      <item>
+        <attribute name="action">win.show-help-overlay</attribute>
+        <attribute name="label">Show Keyboard Shortcuts</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.show-help</attribute>
+        <attribute name="label">Help</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.show-about</attribute>
+        <attribute name="label">About …</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

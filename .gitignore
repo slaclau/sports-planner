@@ -40,7 +40,7 @@ pip-delete-this-directory.txt
 *.prof
 
 # Auto generated ui files
-*.ui
+# *.ui commit these now
 
 # Compiled gresource files
 *.gresource

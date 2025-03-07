@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.94.1 -->
+<interface>
+  <requires lib="gtk" version="4.12"/>
+  <requires lib="libadwaita" version="1.4"/>
+  <template class="ActivitiesView" parent="GtkBox">
+    <child>
+      <object class="AdwNavigationSplitView">
+        <property name="content">
+          <object class="AdwNavigationPage" id="activity-pane">
+            <property name="child">
+              <object class="ActivityView" id="activity-view"/>
+            </property>
+            <property name="title">activity-pane</property>
+          </object>
+        </property>
+        <property name="hexpand">True</property>
+        <property name="sidebar">
+          <object class="AdwNavigationPage">
+            <property name="child">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="GtkExpander" id="calendar-expander">
+                        <property name="child">
+                          <object class="Calendar"/>
+                        </property>
+                        <property name="expanded">True</property>
+                        <property name="label">Calendar</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkExpander" id="activities-expander">
+                        <property name="child">
+                          <object class="GtkScrolledWindow">
+                            <property name="vexpand">True</property>
+                            <child>
+                              <object class="GtkListView" id="activities-list">
+                                <property name="show-separators">True</property>
+                                <property name="single-click-activate">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                        <property name="expanded">True</property>
+                        <property name="label">Activities</property>
+                        <property name="vexpand">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkExpander" id="intervals-expander">
+                        <property name="child">
+                          <object class="GtkListView"/>
+                        </property>
+                        <property name="label">Intervals</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="halign">center</property>
+                    <property name="spacing">10</property>
+                    <child>
+                      <object class="GtkButton" id="open-calendar-button">
+                        <property name="icon-name">calendar-month-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="open-activities-button">
+                        <property name="icon-name">folder-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="open-intervals-button">
+                        <property name="icon-name">stopwatch-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+            <property name="title">activity-sidebar</property>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.94.1 -->
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkShortcutsWindow" id="help_overlay">
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="section-name">shortcuts</property>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">General</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.show-help</property>
+                <property name="title">Show help</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.show-help-overlay</property>
+                <property name="title">Show Keyboard Shortcuts</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
