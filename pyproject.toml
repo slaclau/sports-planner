@@ -2,7 +2,17 @@
 name = "sports-planner"
 dynamic = ["version"]
 readme = "README.md"
-dependencies = ["sports-planner-lib", "PyGObject", "profilehooks", "plotly", "plotly-gtk", "libantplus", "numpy", "pyYAML", "icalendar"]
+dependencies = [
+    "sports-planner-lib@git+https://github.com/slaclau/sports-planner-lib",
+    "PyGObject",
+    "profilehooks",
+    "plotly",
+    "plotly-gtk",
+    "libantplus@git+https://github.com/slaclau/python-libantplus",
+    "numpy",
+    "pyYAML",
+    "icalendar"
+]
 
 [build-system]
 requires = [
