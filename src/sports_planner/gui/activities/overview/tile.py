@@ -2,10 +2,11 @@ import logging
 from typing import TYPE_CHECKING
 
 import gi
+from numpy.core.defchararray import lower
 
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
-from gi.repository import Adw, Gtk, Gio, GObject
+from gi.repository import Adw, Gtk, Gio, GObject, GLib
 
 from sports_planner.gui.activities.overview.metrics_list import MetricsList
 
@@ -31,6 +32,7 @@ class Tile(Gtk.Frame):
         )
         tile_type = self.settings.get_string("type")
         self.id = id
+        self.overview = overview
 
         self.settings.bind(
             "start-column", self, "start_column", Gio.SettingsBindFlags.DEFAULT
@@ -41,15 +43,24 @@ class Tile(Gtk.Frame):
         self.add_controller(Gtk.DragSource())
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_child(self.box)
-        self.title_label = Gtk.Label()
+        self.title_label = Gtk.Label(hexpand=True)
         self.settings.bind(
             "title", self.title_label, "label", Gio.SettingsBindFlags.DEFAULT
         )
-        self.box.append(self.title_label)
+        self.title_box = Gtk.Box(hexpand=True)
+        self.title_box.append(self.title_label)
+        settings_button = Gtk.Button(icon_name="settings-symbolic")
+        settings_button.connect("clicked", lambda b: self.show_settings())
+        settings_button.add_css_class("flat")
+        self.title_box.append(settings_button)
+
+        self.box.append(self.title_box)
         if tile_type == "metrics-list":
-            self.box.append(MetricsList(config_path, tile_type, overview.context))
+            self.child = MetricsList(config_path, overview.context)
         else:
             raise ValueError(f"Unknown tile type {tile_type}")
+
+        self.box.append(self.child)
 
     @GObject.Property(type=int)
     def start_column(self):
@@ -74,3 +85,32 @@ class Tile(Gtk.Frame):
     @height.setter
     def height(self, value):
         self._height = value
+
+    def show_settings(self):
+        dialog = Adw.PreferencesDialog(
+            title=f"{self.settings.get_string("title")} ({self.settings.get_string("type")}"
+        )
+        basic_page = Adw.PreferencesPage(title="Basic settings")
+        dialog.add(basic_page)
+
+        basic_group = Adw.PreferencesGroup(title="Basic settings")
+        basic_page.add(basic_group)
+
+        title_row = Adw.EntryRow(title="Title")
+        width_row = Adw.SpinRow.new_with_range(1, self.overview.n_columns, 1)
+        width_row.set_title("Width")
+        height_row = Adw.SpinRow.new_with_range(1, 100, 1)
+        height_row.set_title("Height")
+
+        self.settings.bind("title", title_row, "text", Gio.SettingsBindFlags.DEFAULT)
+        self.settings.bind("columns", width_row, "value", Gio.SettingsBindFlags.DEFAULT)
+        self.settings.bind("height", height_row, "value", Gio.SettingsBindFlags.DEFAULT)
+
+        basic_group.add(title_row)
+        basic_group.add(width_row)
+        basic_group.add(height_row)
+
+        for page in self.child.get_settings_pages():
+            dialog.add(page)
+
+        dialog.present(self)

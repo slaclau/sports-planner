@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from sports_planner.gui.app import Context
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Overview(Gtk.Widget):
@@ -27,7 +26,7 @@ class Overview(Gtk.Widget):
         self.layout_manager = Gtk.ConstraintLayout()
         self.set_layout_manager(self.layout_manager)
 
-        self.n_columns = 5
+        self.n_columns = 3
         self.spacing = 16
         self.margin = 24
         self.row_spacing = 16
@@ -39,17 +38,15 @@ class Overview(Gtk.Widget):
 
     @staticmethod
     def _on_prepare(source, x, y, val):
-        print(f"prepare {source} {x} {y} {val}")
         value = GObject.Value()
         value.init(Tile)
         value.set_object(val)
 
         return Gdk.ContentProvider.new_for_value(value)
-        return Gdk.ContentProvider.new_for_value(source)
 
     @staticmethod
     def _on_drag_begin(source, x, y):
-        print(f"drag begin {source} {x} {y}")
+        pass
 
     @staticmethod
     def _on_drop(target, tile, x, y):
@@ -80,6 +77,44 @@ class Overview(Gtk.Widget):
             self.layout_manager.remove_constraint(tile.start_constraint)
         self.layout_manager.add_constraint(start_constraint)
         tile.start_constraint = start_constraint
+
+    def update_size_constraints(self, tile_object):
+        width_multiplier = tile_object.columns / self.n_columns
+        width_constant = (
+            tile_object.columns - 1
+        ) * self.spacing - tile_object.columns * (
+            (self.n_columns - 1) * self.spacing + 2 * self.margin
+        ) / self.n_columns
+        width_constraint = Gtk.Constraint(
+            multiplier=width_multiplier,
+            constant=width_constant,
+            target=tile_object,
+            target_attribute=Gtk.ConstraintAttribute.WIDTH,
+            source_attribute=Gtk.ConstraintAttribute.WIDTH,
+            relation=Gtk.ConstraintRelation.EQ,
+            strength=Gtk.ConstraintStrength.REQUIRED,
+        )
+        height_constant = (
+            tile_object.height * self.row_height
+            + (tile_object.height - 1) * self.row_spacing
+        )
+        height_constraint = Gtk.Constraint(
+            constant=height_constant,
+            target=tile_object,
+            target_attribute=Gtk.ConstraintAttribute.HEIGHT,
+            relation=Gtk.ConstraintRelation.EQ,
+            strength=Gtk.ConstraintStrength.REQUIRED,
+        )
+
+        if hasattr(tile_object, "width_constraint"):
+            self.layout_manager.remove_constraint(tile_object.width_constraint)
+        if hasattr(tile_object, "height_constraint"):
+            self.layout_manager.remove_constraint(tile_object.height_constraint)
+        self.layout_manager.add_constraint(width_constraint)
+        self.layout_manager.add_constraint(height_constraint)
+
+        tile_object.width_constraint = width_constraint
+        tile_object.height_constraint = height_constraint
 
     def add_content(self):
         drop_target = Gtk.DropTarget.new(Tile, Gdk.DragAction.MOVE)
@@ -174,40 +209,11 @@ class Overview(Gtk.Widget):
         tile_object.set_parent(self)
         self.update_start_constraint(tile_object)
 
-        width_multiplier = tile_object.columns / self.n_columns
-        width_constant = (
-            tile_object.columns - 1
-        ) * self.spacing - tile_object.columns * (
-            (self.n_columns - 1) * self.spacing + 2 * self.margin
-        ) / self.n_columns
-        width_constraint = Gtk.Constraint(
-            multiplier=width_multiplier,
-            constant=width_constant,
-            target=tile_object,
-            target_attribute=Gtk.ConstraintAttribute.WIDTH,
-            source_attribute=Gtk.ConstraintAttribute.WIDTH,
-            relation=Gtk.ConstraintRelation.EQ,
-            strength=Gtk.ConstraintStrength.REQUIRED,
-        )
-        height_constant = (
-            tile_object.height * self.row_height
-            + (tile_object.height - 1) * self.row_spacing
-        )
-        height_constraint = Gtk.Constraint(
-            constant=height_constant,
-            target=tile_object,
-            target_attribute=Gtk.ConstraintAttribute.HEIGHT,
-            relation=Gtk.ConstraintRelation.EQ,
-            strength=Gtk.ConstraintStrength.REQUIRED,
-        )
-        tile_object.width_constraint = width_constraint
-        tile_object.height_constraint = height_constraint
-
-        self.layout_manager.add_constraint(width_constraint)
-        self.layout_manager.add_constraint(height_constraint)
+        self.update_size_constraints(tile_object)
 
         def update_func(tile, _):
             self.update_start_constraint(tile)
+            self.update_size_constraints(tile)
             self._update_cell_starts()
 
         tile_object.connect("notify", update_func)
