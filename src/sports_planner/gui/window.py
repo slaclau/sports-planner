@@ -1,6 +1,7 @@
 import logging
 
 import gi
+from profilehooks import profile
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -59,10 +60,12 @@ class SportsPlannerWindow(Adw.ApplicationWindow):
         self.train_box.append(TrainingView())
 
         athlete_logger = logging.getLogger("sports_planner_lib.athlete")
-        athlete_logger.setLevel(logging.DEBUG)
-        athlete_logger.addHandler(LabelHandler(self.sync_label, level=logging.DEBUG))
-        athlete_logger.addHandler(ProgressBarHandler(self.sync_progress, level=logging.DEBUG))
+        athlete_logger.addHandler(LabelHandler(self.sync_label, level=logging.INFO))
+        athlete_logger.addHandler(
+            ProgressBarHandler(self.sync_progress, level=logging.INFO)
+        )
 
+    @profile(filename="sync.prof")
     def _sync(self):
         self.sync_button.set_sensitive(False)
         self.sync_progress.set_visible(True)
@@ -82,7 +85,10 @@ class SportsPlannerWindow(Adw.ApplicationWindow):
 
         def sync_cb(task, object, _, __):
             self.context.athlete.import_activities(redownload=False)
-            self.context.athlete.update_db(recompute=False)
+            self.context.athlete.update_db(recompute=True)
+
+            self.activities_view.set_context(self.context)
+            self.plan_view.set_context(self.context)
 
         self.sync_task = Gio.Task.new(callback=on_sync_done)
         self.sync_task.run_in_thread(sync_cb)

@@ -1,13 +1,7 @@
-import datetime
-import importlib.resources
 import logging
-import sys
-from datetime import datetime
-from pathlib import Path
 
 import gi
 import sports_planner_lib.utils.format
-import yaml
 from profilehooks import profile
 from sports_planner_lib.db.schemas import Activity
 

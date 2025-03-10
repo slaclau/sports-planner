@@ -70,8 +70,6 @@ requests==2.32.3
     # via sphinx
 roman-numerals-py==3.1.0
     # via sphinx
-rstxml2docbook @ git+https://github.com/slaclau/rstxml2docbook
-    # via sports-planner (pyproject.toml::build-system.requires)
 setuptools-scm==8.2.0
     # via
     #   setuptools-scm-custom

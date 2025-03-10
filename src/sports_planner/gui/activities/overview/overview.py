@@ -9,7 +9,7 @@ from gi.repository import GObject, Gtk, Gio, Gdk
 from sports_planner.gui.activities.overview.tile import Tile
 
 if TYPE_CHECKING:
-    from sports_planner.gui.main import Context
+    from sports_planner.gui.app import Context
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -19,6 +19,7 @@ class Overview(Gtk.Widget):
     def __init__(self, name, context: "Context"):
         super().__init__()
         self.name = name
+        self.context = context
         self.settings = Gio.Settings(
             schema_id="io.github.slaclau.sports-planner.views.activities.tabs.overview",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",

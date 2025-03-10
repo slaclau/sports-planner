@@ -7,6 +7,8 @@ gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Adw, Gtk, Gio, GObject
 
+from sports_planner.gui.activities.overview.metrics_list import MetricsList
+
 if TYPE_CHECKING:
     from sports_planner.gui.activities.overview.overview import Overview
 
@@ -22,13 +24,17 @@ class Tile(Gtk.Frame):
         self._height: int
 
         super().__init__()
+        config_path = f"/io/github/slaclau/sports-planner/views/activities/tabs/{overview.name}/tiles/{id}/"
         self.settings = Gio.Settings(
             schema_id="io.github.slaclau.sports-planner.views.activities.tabs.overview.tile",
-            path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{overview.name}/tiles/{id}/",
+            path=config_path,
         )
+        tile_type = self.settings.get_string("type")
         self.id = id
 
-        self.settings.bind("start-column", self, "start_column", Gio.SettingsBindFlags.DEFAULT)
+        self.settings.bind(
+            "start-column", self, "start_column", Gio.SettingsBindFlags.DEFAULT
+        )
         self.settings.bind("columns", self, "columns", Gio.SettingsBindFlags.DEFAULT)
         self.settings.bind("height", self, "height", Gio.SettingsBindFlags.DEFAULT)
 
@@ -40,6 +46,10 @@ class Tile(Gtk.Frame):
             "title", self.title_label, "label", Gio.SettingsBindFlags.DEFAULT
         )
         self.box.append(self.title_label)
+        if tile_type == "metrics-list":
+            self.box.append(MetricsList(config_path, tile_type, overview.context))
+        else:
+            raise ValueError(f"Unknown tile type {tile_type}")
 
     @GObject.Property(type=int)
     def start_column(self):

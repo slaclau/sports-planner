@@ -30,9 +30,9 @@
       <default>""</default>
     </key>
     <key name="type" type="s">
-      <summary>Tile configuration.</summary>
+      <summary>Tile type.</summary>
       <description>
-        Tile configuration. This is provided as a dictionary.
+        Tile type. This is selected from a list of available types.
       </description>
       <default>"metrics-list"</default>
       <choices>

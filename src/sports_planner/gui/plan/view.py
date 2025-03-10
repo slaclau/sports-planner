@@ -21,12 +21,14 @@ class PlanView(Gtk.Box):
     def __init__(self):
         super().__init__()
         self.month_view = GtkCal.MonthView()
+        self.month_view.connect("event-activated", lambda view, event: print())
         self.month_view.set_hexpand(True)
         self.append(self.month_view)
 
     def set_context(self, context):
         green = Gdk.RGBA()
         green.parse("green")
+
         GtkCal.add_color_to_css(green)
         self.context = context
         logger.info(

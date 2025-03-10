@@ -35,7 +35,7 @@ class Context(GObject.GObject):
         return self._activity
 
     @activity.setter
-    def activity(self, activity):
+    def activity(self, activity) -> sports_planner_lib.db.schemas.Activity:
         self._activity = activity
         self.emit("activity-changed")
 
@@ -51,7 +51,7 @@ class SportsPlannerApplication(Adw.Application):
 
     def do_startup(self):
         Adw.Application.do_startup(self)
-        GtkCal.init()
+        assert GtkCal.init()
         self._add_standard_actions()
 
     def do_activate(self):
@@ -64,6 +64,7 @@ class SportsPlannerApplication(Adw.Application):
 
         if not win:
             from sports_planner.gui.window import SportsPlannerWindow
+
             win = SportsPlannerWindow(application=self, context=context)
 
         win.present()

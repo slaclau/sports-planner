@@ -7,7 +7,7 @@ import os
 import pathlib
 import sys
 
-import gi
+from profilehooks import profile
 from gi.repository import Gio
 
 from sports_planner.gui.app import SportsPlannerApplication, INSTALL_TYPE
@@ -16,6 +16,7 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
 logger = logging.getLogger(__name__)
+
 
 def main():
     resource = None
