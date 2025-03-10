@@ -54,9 +54,8 @@ class MapViewer(Gtk.Box):
         #         lon=self.activity.records_df["longitude"].mean(),
         #     ),
         # )
-        activity = self.context.athlete.get_activity_full(
-            self.context.activity,
-        )
+        activity = self.context.activity
+
         fig = px.line_mapbox(
             activity.records_df,
             lat="latitude",
@@ -92,11 +91,10 @@ class ActivityPlot(Gtk.Box):
             self.remove(self.get_first_child())
         columns = self.settings.get_value("columns").unpack()
 
-        activity = self.context.athlete.get_activity_full(
-            self.context.activity,
-        )
+        activity = self.context.activity
+
         df = activity.records_df
-        columns = set(df.columns).intersection(columns)
+        columns = [k for k, v in df[columns].isnull().all().items() if not v]
         fig = get_base_fig()
         i = 0
         for column in columns:
