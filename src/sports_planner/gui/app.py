@@ -31,12 +31,12 @@ class Context(GObject.GObject):
     install_type: INSTALL_TYPE | None = None
 
     @property
-    def activity(self):
+    def activity(self) -> sports_planner_lib.db.schemas.Activity | None:
         return self._activity
 
     @activity.setter
-    def activity(self, activity) -> sports_planner_lib.db.schemas.Activity:
-        self._activity = activity
+    def activity(self, activity):
+        self._activity = self.athlete.get_activity_full(activity)
         self.emit("activity-changed")
 
     @GObject.Signal(name="activity-changed")

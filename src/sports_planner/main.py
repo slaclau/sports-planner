@@ -12,9 +12,6 @@ from gi.repository import Gio
 
 from sports_planner.gui.app import SportsPlannerApplication, INSTALL_TYPE
 
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-
 logger = logging.getLogger(__name__)
 
 
@@ -71,4 +68,7 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.WARNING)
+
     main()

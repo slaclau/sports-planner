@@ -75,6 +75,9 @@ class SportsPlannerWindow(Adw.ApplicationWindow):
             self.sync_label.set_label("")
             self.sync_progress.set_visible(False)
 
+            self.activities_view.set_context(self.context)
+            self.plan_view.set_context(self.context)
+
             notification = Gio.Notification()
             notification.set_title("Sync completed")
             notification.set_body(
@@ -85,10 +88,7 @@ class SportsPlannerWindow(Adw.ApplicationWindow):
 
         def sync_cb(task, object, _, __):
             self.context.athlete.import_activities(redownload=False)
-            self.context.athlete.update_db(recompute=True)
-
-            self.activities_view.set_context(self.context)
-            self.plan_view.set_context(self.context)
+            self.context.athlete.update_db(recompute=False)
 
         self.sync_task = Gio.Task.new(callback=on_sync_done)
         self.sync_task.run_in_thread(sync_cb)
