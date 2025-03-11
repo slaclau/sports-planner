@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/io/github/slaclau/sports-planner/">
     <file preprocess="xml-stripblanks">icons/scalable/emblems/cycling-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/plus-large-symbolic.svg</file>
     <file preprocess="xml-stripblanks">gtk/main.ui</file>
     <file preprocess="xml-stripblanks">gtk/menus.ui</file>
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
