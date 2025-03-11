@@ -46,6 +46,7 @@ class Tile(Gtk.Frame):
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_child(self.box)
         self.title_label = Gtk.Label(hexpand=True)
+        self.title_label.add_css_class("title-4")
         self.settings.bind(
             "title", self.title_label, "label", Gio.SettingsBindFlags.DEFAULT
         )
