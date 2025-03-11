@@ -48,8 +48,9 @@ class Overview(Gtk.ScrolledWindow):
         return Gdk.ContentProvider.new_for_value(value)
 
     @staticmethod
-    def _on_drag_begin(source, x, y):
-        pass
+    def _on_drag_begin(source, drag, widget):
+        paintable = Gtk.WidgetPaintable(widget=widget)
+        source.set_icon(paintable, 0, 0)
 
     @staticmethod
     def _on_drop(target, tile, x, y):
@@ -87,7 +88,7 @@ class Overview(Gtk.ScrolledWindow):
                 self.update_content()
                 t.update_size_request()
 
-            tile.settings.connect("changed", lambda t, _: _update_func(t))
+            tile.settings.connect("changed", lambda s, _: _update_func(tile))
             self.tiles.append(tile)
         self.update_content()
 
