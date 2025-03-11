@@ -25,6 +25,8 @@ class Tile(Gtk.Frame):
         self._height: int
 
         super().__init__()
+        self.add_css_class("card")
+
         config_path = f"/io/github/slaclau/sports-planner/views/activities/tabs/{overview.name}/tiles/{id}/"
         self.settings = Gio.Settings(
             schema_id="io.github.slaclau.sports-planner.views.activities.tabs.overview.tile",
@@ -60,7 +62,16 @@ class Tile(Gtk.Frame):
         else:
             raise ValueError(f"Unknown tile type {tile_type}")
 
+        self.update_size_request()
+        self.connect("notify::change", lambda p, v: self.update_size_request())
         self.box.append(self.child)
+
+    def update_size_request(self):
+        self.set_size_request(
+            -1,
+            self.overview.row_height * self.height
+            + self.overview.row_spacing * (self.height - 1),
+        )
 
     @GObject.Property(type=int)
     def start_column(self):
@@ -90,7 +101,9 @@ class Tile(Gtk.Frame):
         dialog = Adw.PreferencesDialog(
             title=f"{self.settings.get_string("title")} ({self.settings.get_string("type")}"
         )
-        basic_page = Adw.PreferencesPage(title="Basic settings")
+        basic_page = Adw.PreferencesPage(
+            title="Basic settings", icon_name="settings-symbolic"
+        )
         dialog.add(basic_page)
 
         basic_group = Adw.PreferencesGroup(title="Basic settings")

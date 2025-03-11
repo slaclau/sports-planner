@@ -9,7 +9,8 @@ import gi
 import sports_planner.utils.format
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, Gio
+gi.require_version("Adw", "1")
+from gi.repository import Adw, Gtk, Gio
 
 from sports_planner_lib.metrics.calculate import get_metric, parse_metric_string
 
@@ -79,4 +80,7 @@ class MetricsList(Gtk.Grid):
             self.attach(Gtk.Label(label=unit, xalign=0), 2, i, 1, 1)
 
     def get_settings_pages(self):
-        return []
+        metrics_page = Adw.PreferencesPage(
+            title="Metrics", icon_name="cycling-symbolic"
+        )
+        return [metrics_page]

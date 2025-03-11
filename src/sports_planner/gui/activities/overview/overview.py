@@ -14,26 +14,29 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Overview(Gtk.Widget):
+class Overview(Gtk.ScrolledWindow):
     def __init__(self, name, context: "Context"):
-        super().__init__()
+        super().__init__(hscrollbar_policy=Gtk.PolicyType.NEVER)
         self.name = name
         self.context = context
         self.settings = Gio.Settings(
             schema_id="io.github.slaclau.sports-planner.views.activities.tabs.overview",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
         )
-        self.layout_manager = Gtk.ConstraintLayout()
-        self.set_layout_manager(self.layout_manager)
 
         self.n_columns = 3
         self.spacing = 16
         self.margin = 24
         self.row_spacing = 16
-        self.row_height = 16
+        self.row_height = 48
+
+        self.set_margin_start(self.margin)
+        self.set_margin_end(self.margin)
+        self.set_margin_top(self.margin)
+        self.set_margin_bottom(self.margin)
 
         self.tiles = []
-
+        self.grid: Gtk.Grid | None = None
         self.add_content()
 
     @staticmethod
@@ -50,170 +53,82 @@ class Overview(Gtk.Widget):
 
     @staticmethod
     def _on_drop(target, tile, x, y):
-        col = int(x * target.get_widget().n_columns / target.get_widget().get_width())
-        tile.start_column = col
-        tile.settings.set_int("start-column", col)
-        target.get_widget().update_start_constraint(tile)
+        print("on drop")
 
         return True
 
-    def update_start_constraint(self, tile):
-        start_multiplier = tile.start_column / self.n_columns
-        start_constant = (
-            self.margin
-            + tile.start_column * (self.spacing - 2 * self.margin) / self.n_columns
-        )
-        start_constraint = Gtk.Constraint(
-            multiplier=start_multiplier,
-            constant=start_constant,
-            target=tile,
-            target_attribute=Gtk.ConstraintAttribute.START,
-            source_attribute=Gtk.ConstraintAttribute.WIDTH,
-            relation=Gtk.ConstraintRelation.EQ,
-            strength=Gtk.ConstraintStrength.REQUIRED,
-        )
-
-        if hasattr(tile, "start_constraint"):
-            self.layout_manager.remove_constraint(tile.start_constraint)
-        self.layout_manager.add_constraint(start_constraint)
-        tile.start_constraint = start_constraint
-
-    def update_size_constraints(self, tile_object):
-        width_multiplier = tile_object.columns / self.n_columns
-        width_constant = (
-            tile_object.columns - 1
-        ) * self.spacing - tile_object.columns * (
-            (self.n_columns - 1) * self.spacing + 2 * self.margin
-        ) / self.n_columns
-        width_constraint = Gtk.Constraint(
-            multiplier=width_multiplier,
-            constant=width_constant,
-            target=tile_object,
-            target_attribute=Gtk.ConstraintAttribute.WIDTH,
-            source_attribute=Gtk.ConstraintAttribute.WIDTH,
-            relation=Gtk.ConstraintRelation.EQ,
-            strength=Gtk.ConstraintStrength.REQUIRED,
-        )
-        height_constant = (
-            tile_object.height * self.row_height
-            + (tile_object.height - 1) * self.row_spacing
-        )
-        height_constraint = Gtk.Constraint(
-            constant=height_constant,
-            target=tile_object,
-            target_attribute=Gtk.ConstraintAttribute.HEIGHT,
-            relation=Gtk.ConstraintRelation.EQ,
-            strength=Gtk.ConstraintStrength.REQUIRED,
-        )
-
-        if hasattr(tile_object, "width_constraint"):
-            self.layout_manager.remove_constraint(tile_object.width_constraint)
-        if hasattr(tile_object, "height_constraint"):
-            self.layout_manager.remove_constraint(tile_object.height_constraint)
-        self.layout_manager.add_constraint(width_constraint)
-        self.layout_manager.add_constraint(height_constraint)
-
-        tile_object.width_constraint = width_constraint
-        tile_object.height_constraint = height_constraint
-
     def add_content(self):
+        self.grid = Gtk.Grid(
+            column_homogeneous=True,
+            row_homogeneous=True,
+            column_spacing=self.spacing,
+            row_spacing=self.row_spacing,
+        )
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.set_child(box)
+        box.append(self.grid)
+
         drop_target = Gtk.DropTarget.new(Tile, Gdk.DragAction.MOVE)
         self.add_controller(drop_target)
         drop_target.connect("drop", lambda t, x, y, val: self._on_drop(t, x, y, val))
 
-        for tile in self.settings.get_value("tiles").unpack():
-            logger.debug(f"adding tile {tile}")
-            self.add_tile(tile)
-        # Should sort tiles by columns
-        self._update_cell_starts()
+        for tile_id in self.settings.get_value("tiles").unpack():
+            tile = Tile(tile_id, self)
+            drop_controller = Gtk.DropControllerMotion()
+            drag_source = Gtk.DragSource(
+                actions=Gdk.DragAction.MOVE,
+            )
+            tile.add_controller(drop_controller)
+            tile.add_controller(drag_source)
+            drag_source.connect("prepare", self._on_prepare, tile)
+            drag_source.connect("drag-begin", self._on_drag_begin, tile)
 
-    def _update_cell_starts(self):
-        columns: List[List[Tile]] = [[]] * self.n_columns
+            def _update_func(t):
+                self.update_content()
+                t.update_size_request()
+
+            tile.settings.connect("changed", lambda t, _: _update_func(t))
+            self.tiles.append(tile)
+        self.update_content()
+
+    def update_content(self):
         for tile in self.tiles:
-            spanned_cols = range(tile.start_column, tile.start_column + tile.columns)
-            for col in spanned_cols:
-                columns[col] = columns[col] + [tile]
-            if hasattr(tile, "start_row"):
-                delattr(tile, "start_row")
+            if tile.get_parent() is not None:
+                self.grid.remove(tile)
 
-        for col in columns:
-            if len(col) == 0:
-                continue
-            if not hasattr(col[0], "start_row"):
-                col[0].start_row = 0
-                constraint = Gtk.Constraint(
-                    constant=self.margin,
-                    target=col[0],
-                    target_attribute=Gtk.ConstraintAttribute.TOP,
-                    source_attribute=Gtk.ConstraintAttribute.TOP,
-                )
-                if hasattr(col[0], "top_constraint"):
-                    self.layout_manager.remove_constraint(col[0].top_constraint)
-                col[0].top_constraint = constraint
-                self.layout_manager.add_constraint(constraint)
+        columns = [[] for _ in range(self.n_columns)]
+        current_next_column = 0
 
-            for i in range(1, len(col)):
-                if not hasattr(col[i], "start_row"):
-                    # does it fit?
-                    for j in range(i + 1, len(col)):
-                        if hasattr(col[j], "start_row"):
-                            if (
-                                col[j].start_row
-                                < col[i - 1].start_row
-                                + col[i - 1].height
-                                + col[i].height
-                            ):
-                                col[i].start_row = col[j].start_row + col[j].height
-                                constraint = Gtk.Constraint(
-                                    constant=self.row_spacing,
-                                    target=col[i],
-                                    target_attribute=Gtk.ConstraintAttribute.TOP,
-                                    source=col[j],
-                                    source_attribute=Gtk.ConstraintAttribute.BOTTOM,
-                                    relation=Gtk.ConstraintRelation.GE,
-                                )
-                                if hasattr(col[i], "top_constraint"):
-                                    self.layout_manager.remove_constraint(
-                                        col[i].top_constraint
-                                    )
-                                col[i].top_constraint = constraint
-                                self.layout_manager.add_constraint(constraint)
-
-                    if not (hasattr(col[i], "start_row")):
-                        col[i].start_row = col[i - 1].start_row + col[i - 1].height
-                        constraint = Gtk.Constraint(
-                            constant=self.row_spacing,
-                            target=col[i],
-                            target_attribute=Gtk.ConstraintAttribute.TOP,
-                            source=col[i - 1],
-                            source_attribute=Gtk.ConstraintAttribute.BOTTOM,
-                        )
-                        if hasattr(col[i], "top_constraint"):
-                            self.layout_manager.remove_constraint(col[i].top_constraint)
-                        col[i].top_constraint = constraint
-                        self.layout_manager.add_constraint(constraint)
-
-    def add_tile(self, tile: str):
-        tile_object = Tile(tile, self)
-        drop_controller = Gtk.DropControllerMotion()
-        drag_source = Gtk.DragSource(
-            actions=Gdk.DragAction.MOVE,
-        )
-        tile_object.add_controller(drop_controller)
-        tile_object.add_controller(drag_source)
-        drag_source.connect("prepare", self._on_prepare, tile_object)
-        drag_source.connect("drag-begin", self._on_drag_begin, tile_object)
-
-        self.tiles += [tile_object]
-
-        tile_object.set_parent(self)
-        self.update_start_constraint(tile_object)
-
-        self.update_size_constraints(tile_object)
-
-        def update_func(tile, _):
-            self.update_start_constraint(tile)
-            self.update_size_constraints(tile)
-            self._update_cell_starts()
-
-        tile_object.connect("notify", update_func)
+        for i in range(0, len(self.tiles)):
+            tile = self.tiles[i]
+            logger.debug(f"adding tile {tile.id}")
+            if i == 0:
+                for j in range(current_next_column, current_next_column + tile.columns):
+                    columns[j].append(tile)
+                attach_args = [current_next_column, 0, tile.columns, tile.height]
+                self.grid.attach(tile, *attach_args)
+                logger.debug(f"attached at {attach_args}")
+                current_next_column = current_next_column + tile.columns
+            else:
+                if current_next_column + tile.columns > self.n_columns:
+                    current_next_column = 0
+                    logger.debug("resetting current next column")
+                above_tiles = [
+                    column[-1]
+                    for column in columns[
+                        current_next_column : current_next_column + tile.columns
+                    ]
+                    if len(column) > 0
+                ]
+                logger.debug(f"above tiles {[tile.id for tile in above_tiles]}")
+                positions = [self.grid.query_child(tile) for tile in above_tiles]
+                if len(positions) > 0:
+                    row = max([position[1] + position[3] for position in positions])
+                else:
+                    row = 0
+                attach_args = [current_next_column, row, tile.columns, tile.height]
+                self.grid.attach(tile, *attach_args)
+                logger.debug(f"attached at {attach_args}")
+                for j in range(current_next_column, current_next_column + tile.columns):
+                    columns[j].append(tile)
+                current_next_column = current_next_column + tile.columns
