@@ -83,4 +83,12 @@ class MetricsList(Gtk.Grid):
         metrics_page = Adw.PreferencesPage(
             title="Metrics", icon_name="cycling-symbolic"
         )
+        metrics_group = Adw.PreferencesGroup(title="Metrics")
+        metrics_page.add(metrics_group)
+
+        for metric in self.settings.get_value("metrics").unpack():
+            metrics_group.add(Adw.ActionRow(title=parse_metric_string(metric)[0].name))
+
+        metrics_group.add(Adw.ActionRow(icon_name="plus-symbolic"))
+
         return [metrics_page]
