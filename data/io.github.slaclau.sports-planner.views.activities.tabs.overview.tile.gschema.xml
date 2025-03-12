@@ -37,6 +37,7 @@
       <default>"metrics-list"</default>
       <choices>
         <choice value="metrics-list"/>
+        <choice value="metric"/>
       </choices>
     </key>
   </schema>
