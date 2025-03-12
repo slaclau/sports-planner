@@ -29,7 +29,7 @@ class MetricsList(Gtk.Grid):
             path=config_path,
         )
         self.settings.connect("changed::metrics", lambda s, k: self._update())
-        self.context.connect("activity-changed", lambda context: self._update())
+        self.context.connect("activity-changed", lambda _: self._update())
         self._update()
 
     def _update(self):
@@ -89,6 +89,6 @@ class MetricsList(Gtk.Grid):
         for metric in self.settings.get_value("metrics").unpack():
             metrics_group.add(Adw.ActionRow(title=parse_metric_string(metric)[0].name))
 
-        metrics_group.add(Adw.ActionRow(icon_name="plus-symbolic"))
+        metrics_group.add(Adw.ActionRow(icon_name="plus-large-symbolic"))
 
         return [metrics_page]

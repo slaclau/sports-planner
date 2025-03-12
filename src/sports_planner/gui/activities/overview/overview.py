@@ -28,7 +28,7 @@ class Overview(Gtk.ScrolledWindow):
         self.spacing = 16
         self.margin = 24
         self.row_spacing = 16
-        self.row_height = 48
+        self.row_height = 72
 
         self.set_margin_start(self.margin)
         self.set_margin_end(self.margin)

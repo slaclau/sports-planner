@@ -1,17 +1,18 @@
-import logging
 from typing import TYPE_CHECKING
 
 import gi
-from numpy.core.defchararray import lower
 
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Adw, Gtk, Gio, GObject, GLib
 
 from sports_planner.gui.activities.overview.metrics_list import MetricsList
+from sports_planner.gui.activities.overview.metric import Metric
 
 if TYPE_CHECKING:
     from sports_planner.gui.activities.overview.overview import Overview
+
+tile_type_map = {"metrics-list": MetricsList, "metric": Metric}
 
 
 class Tile(Gtk.Frame):
@@ -45,7 +46,9 @@ class Tile(Gtk.Frame):
         self.add_controller(Gtk.DragSource())
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_child(self.box)
-        self.title_label = Gtk.Label(hexpand=True)
+        self.title_label = Gtk.Label(
+            hexpand=True, halign=Gtk.Align.START, margin_start=16
+        )
         self.title_label.add_css_class("title-4")
         self.settings.bind(
             "title", self.title_label, "label", Gio.SettingsBindFlags.DEFAULT
@@ -58,10 +61,7 @@ class Tile(Gtk.Frame):
         self.title_box.append(settings_button)
 
         self.box.append(self.title_box)
-        if tile_type == "metrics-list":
-            self.child = MetricsList(config_path, overview.context)
-        else:
-            raise ValueError(f"Unknown tile type {tile_type}")
+        self.child = tile_type_map[tile_type](config_path, overview.context)
 
         self.update_size_request()
         self.connect("notify::change", lambda p, v: self.update_size_request())
