@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING
 
 import gi
@@ -8,11 +9,14 @@ from gi.repository import Adw, Gtk, Gio, GObject, GLib
 
 from sports_planner.gui.activities.overview.metrics_list import MetricsList
 from sports_planner.gui.activities.overview.metric import Metric
+from sports_planner.gui.activities.overview.chart import Chart
 
 if TYPE_CHECKING:
-    from sports_planner.gui.activities.overview.overview import Overview
+    from sports_planner.gui.activities.overview.overview import _Overview
 
-tile_type_map = {"metrics-list": MetricsList, "metric": Metric}
+logger = logging.getLogger(__name__)
+
+tile_type_map = {"metrics-list": MetricsList, "metric": Metric, "chart": Chart}
 
 
 class Tile(Gtk.Frame):
@@ -20,7 +24,11 @@ class Tile(Gtk.Frame):
     _columns = 0
     _height = 0
 
-    def __init__(self, id: str, overview: "Overview"):
+    @GObject.Signal
+    def removed(self):
+        logger.debug("removed")
+
+    def __init__(self, id: str, overview: "_Overview"):
         self._start_column: int
         self._columns: int
         self._height: int
@@ -63,16 +71,7 @@ class Tile(Gtk.Frame):
         self.box.append(self.title_box)
         self.child = tile_type_map[tile_type](config_path, overview.context)
 
-        self.update_size_request()
-        self.connect("notify::change", lambda p, v: self.update_size_request())
         self.box.append(self.child)
-
-    def update_size_request(self):
-        self.set_size_request(
-            -1,
-            self.overview.row_height * self.height
-            + self.overview.row_spacing * (self.height - 1),
-        )
 
     @GObject.Property(type=int)
     def start_column(self):
@@ -115,6 +114,19 @@ class Tile(Gtk.Frame):
         width_row.set_title("Width")
         height_row = Adw.SpinRow.new_with_range(1, 100, 1)
         height_row.set_title("Height")
+        type_row = Adw.ComboRow(
+            title="Type",
+        )
+        types = ["metric", "metrics-list", "chart"]
+        types_list = Gtk.StringList(strings=types)
+        type_row.set_model(types_list)
+        type_row.set_selected(types.index(self.settings.get_string("type")))
+        type_row.connect(
+            "notify::selected-item",
+            lambda w, s: self.settings.set_string(
+                "type", w.get_selected_item().get_string()
+            ),
+        )
 
         self.settings.bind("title", title_row, "text", Gio.SettingsBindFlags.DEFAULT)
         self.settings.bind("columns", width_row, "value", Gio.SettingsBindFlags.DEFAULT)
@@ -123,8 +135,19 @@ class Tile(Gtk.Frame):
         basic_group.add(title_row)
         basic_group.add(width_row)
         basic_group.add(height_row)
+        basic_group.add(type_row)
+
+        dangerous_group = Adw.PreferencesGroup(title="Dangerous settings")
+        basic_page.add(dangerous_group)
+
+        remove_row = Adw.ButtonRow(title="Remove tile")
+        remove_row.connect("activated", lambda _: self.emit("removed"))
+        remove_row.add_css_class("destructive-action")
+        dangerous_group.add(remove_row)
 
         for page in self.child.get_settings_pages():
             dialog.add(page)
+
+        self.settings.connect("changed::type", lambda _, __: dialog.close())
 
         dialog.present(self)

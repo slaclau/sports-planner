@@ -98,7 +98,7 @@
 	(5,7,"GtkStack","stack",2,None,None,None,3,None,None),
 	(5,8,"GtkBox",None,2,None,"top",None,2,None,None),
 	(5,9,"GtkScrolledWindow",None,8,None,None,None,0,None,None),
-	(5,10,"GtkStackSwitcher",None,9,None,None,None,0,None,None),
+	(5,10,"GtkStackSwitcher","stack-switcher",9,None,None,None,0,None,None),
 	(5,11,"GtkButton","add-tab-button",8,None,None,None,1,None,None),
 	(5,12,"GtkButton",None,8,None,None,None,2,None,None),
 	(6,8,"AdwDialog","TabCreationDialog",None,None,None,None,1,None,None),

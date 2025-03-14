@@ -12,7 +12,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk, Gio
 
-from sports_planner_lib.metrics.calculate import get_metric, parse_metric_string
+from sports_planner_lib.metrics.calculate import parse_metric_string, get_all_metrics
 
 if TYPE_CHECKING:
     from sports_planner.gui.app import Context
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class MetricsList(Gtk.Grid):
     def __init__(self, config_path: str, context: "Context"):
-        super().__init__(margin_start=5, margin_end=5, column_homogeneous=False)
+        super().__init__(margin_start=5, margin_end=5)
         self.context = context
         self.settings = Gio.Settings(
             schema_id=f"io.github.slaclau.sports-planner.views.activities.tabs.overview.tile.metrics-list",
@@ -49,33 +49,14 @@ class MetricsList(Gtk.Grid):
             metric_class, fields = parse_metric_string(metric)
             if metric_class is None:
                 logger.error(f"Unknown metric {metric}")
+            self.attach(Gtk.Label(label=f"{metric_class.name}: ", xalign=0), 0, i, 1, 1)
 
             if value is None or isinstance(value, Number) and np.isnan(value):
                 continue
 
             logger.debug(f"adding {metric_class.name} [{fields}]: {value}")
-            unit = metric_class.unit
+            name, value, unit = metric_class.format(value)
 
-            if unit == "s":
-                value = sports_planner.utils.format.time(value)
-                unit = ""
-            else:
-                value = f"{value:{metric_class.format}}"
-
-            if len(fields) == 0:
-                self.attach(
-                    Gtk.Label(label=f"{metric_class.name}: ", xalign=0), 0, i, 1, 1
-                )
-            else:
-                self.attach(
-                    Gtk.Label(
-                        label=f"{metric_class.name} [{", ".join(fields)}]: ", xalign=0
-                    ),
-                    0,
-                    i,
-                    1,
-                    1,
-                )
             self.attach(Gtk.Label(label=f"{value} ", xalign=1), 1, i, 1, 1)
             self.attach(Gtk.Label(label=unit, xalign=0), 2, i, 1, 1)
 
@@ -86,9 +67,51 @@ class MetricsList(Gtk.Grid):
         metrics_group = Adw.PreferencesGroup(title="Metrics")
         metrics_page.add(metrics_group)
 
-        for metric in self.settings.get_value("metrics").unpack():
-            metrics_group.add(Adw.ActionRow(title=parse_metric_string(metric)[0].name))
+        metrics = get_all_metrics()
+        metrics_map = {
+            metric.name: metric for metric in metrics if hasattr(metric, "name")
+        }
+        metrics_strings = sorted(metrics_map.keys())
+        metrics_list = Gtk.StringList(strings=metrics_strings)
 
-        metrics_group.add(Adw.ActionRow(icon_name="plus-large-symbolic"))
+        settings = self.settings.get_value("metrics").unpack()
+
+        for i in range(0, len(settings)):
+            metric = settings[i]
+            metric, _ = parse_metric_string(metric)
+
+            row = Adw.ComboRow()
+            row.set_model(metrics_list)
+            if metric is not None:
+                row.set_selected(metrics_strings.index(metric.name))
+
+            def update_settings(r):
+                settings[i] = metrics_map[r.get_selected_item().get_string()].__name__
+                self.settings.set_strv("metrics", settings)
+
+            row.connect("notify::selected", lambda r, _: update_settings(r))
+            metrics_group.add(row)
+
+        more_row = Adw.ButtonRow(
+            start_icon_name="plus-large-symbolic", title="Add metric"
+        )
+
+        def add_row():
+            metrics_group.remove(more_row)
+            settings.append("")
+
+            row = Adw.ComboRow()
+            row.set_model(metrics_list)
+
+            def update_settings(r):
+                settings[-1] = metrics_map[r.get_selected_item().get_string()].__name__
+                self.settings.set_strv("metrics", settings)
+
+            row.connect("notify::selected", lambda r, _: update_settings(r))
+            metrics_group.add(row)
+            metrics_group.add(more_row)
+
+        more_row.connect("activated", lambda _: add_row())
+        metrics_group.add(more_row)
 
         return [metrics_page]

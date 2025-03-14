@@ -17,6 +17,7 @@ class ActivityView(Gtk.Box):
     toolbar_view = Gtk.Template.Child("toolbar-view")
     placeholder = Gtk.Template.Child()
     stack: Gtk.Stack = Gtk.Template.Child()
+    stack_switcher: Gtk.StackSwitcher = Gtk.Template.Child("stack-switcher")
 
     settings = Gio.Settings(
         schema_id="io.github.slaclau.sports-planner.views.activities"
@@ -40,7 +41,7 @@ class ActivityView(Gtk.Box):
             self.toolbar_view.set_reveal_top_bars(True)
             self.placeholder.set_visible(False)
 
-            for tab in self.settings.get_value("tabs"):
+            for tab in self.settings.get_value("tabs").unpack():
                 page = ActivityTab(name=tab, context=self.context)
                 self.stack.add_titled(page, tab, page.title)
 

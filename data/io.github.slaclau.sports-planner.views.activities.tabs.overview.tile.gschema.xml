@@ -38,6 +38,7 @@
       <choices>
         <choice value="metrics-list"/>
         <choice value="metric"/>
+        <choice value="chart"/>
       </choices>
     </key>
   </schema>
