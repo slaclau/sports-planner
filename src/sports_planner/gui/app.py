@@ -51,6 +51,7 @@ class SportsPlannerApplication(Adw.Application):
 
     def do_startup(self):
         Adw.Application.do_startup(self)
+        logging.getLogger().setLevel(logging.DEBUG)
         assert GtkCal.init()
         self._add_standard_actions()
 

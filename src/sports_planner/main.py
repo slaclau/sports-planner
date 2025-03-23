@@ -7,7 +7,6 @@ import os
 import pathlib
 import sys
 
-from profilehooks import profile
 from gi.repository import Gio
 
 from sports_planner.gui.app import SportsPlannerApplication, INSTALL_TYPE
