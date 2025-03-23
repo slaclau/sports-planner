@@ -1,7 +1,9 @@
+import datetime
 from typing import TYPE_CHECKING
 
 import gi
 import numpy as np
+import pandas as pd
 import plotly.express as px  # type: ignore
 import plotly.graph_objects as go  # type: ignore
 import plotly.io as pio  # type: ignore
@@ -11,10 +13,11 @@ from plotly_gtk.chart import PlotlyGtk
 from plotly_gtk.utils import get_base_fig
 from plotly_gtk.webview import FigureWebView
 from sports_planner_lib.db.schemas import Activity
-from sports_planner_lib.metrics.pdm import Curve
+from sports_planner_lib.metrics.pdm import Curve, DurationRegressor
 
+gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gio, Gtk
+from gi.repository import Adw, Gio, Gtk
 
 if TYPE_CHECKING:
     from sports_planner.gui.main import Context
@@ -56,13 +59,16 @@ class MapViewer(Gtk.Box):
         # )
         activity = self.context.activity
 
-        fig = px.line_mapbox(
-            activity.records_df,
-            lat="latitude",
-            lon="longitude",
-            mapbox_style=mapbox_style,
-            zoom=zoom,
-        )
+        if "latitude" in activity.records_df and "longitude" in activity.records_df:
+            fig = px.line_mapbox(
+                activity.records_df,
+                lat="latitude",
+                lon="longitude",
+                mapbox_style=mapbox_style,
+                zoom=zoom,
+            )
+        else:
+            fig = go.Figure()
         fig.layout.margin = dict(b=0, l=0, r=0, t=0)
         webview = FigureWebView(fig)
         webview.set_vexpand(True)
@@ -94,7 +100,7 @@ class ActivityPlot(Gtk.Box):
         activity = self.context.activity
 
         df = activity.records_df
-        columns = [k for k, v in df[columns].isnull().all().items() if not v]
+        columns = [col for col in columns if col in df]
         fig = get_base_fig()
         i = 0
         for column in columns:
@@ -167,30 +173,75 @@ class HistogramViewer(Gtk.Box):
             self.append(webview)
 
 
-class CurveViewer:
-    def __init__(self, activity: Activity, gtk=False):
-        super().__init__(spec)
-        self.activity = activity
-        self.add_content(gtk)
+class CurveViewer(Adw.Bin):
+    def __init__(self, name, context: "Context", gtk=True):
+        super().__init__()
+        self.gtk = gtk
 
-    def add_content(self, gtk) -> None:
-        column = self.spec["column"]
-        curve = self.activity.get_metric(Curve[column])
-        if curve is None:
-            return None
-        x = curve["x"]
-        y = curve["y"]
-        data = curve["predictions"]
+        self.settings = Gio.Settings(
+            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.curve",
+            path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
+        )
+        self.settings.connect("changed", lambda s, k: self.add_content())
+        self.context = context
+        self.context.connect("activity-changed", lambda context: self.add_content())
+        self.add_content()
+
+    def add_content(self) -> None:
+        period = {"days": 42}
+        configured_model = "3-param"
+
+        gtk = self.gtk
+
+        column = self.settings.get_string("column")
+        activity = self.context.activity
+
+        curve = activity.get_metric(Curve[column])
+        df = activity.meanmaxes_df
+
+        if curve is None or f"mean_max_{column}" not in df:
+            self.set_child(None)
+            return
+        y = df[f"mean_max_{column}"]
+
+        date = activity.timestamp.date()
+
+        historical = self.context.athlete.get_mean_max_for_period(
+            column,
+            activity.get_metric("Sport")["sport"],
+            date - datetime.timedelta(**period),
+            date + datetime.timedelta(days=1),
+        )
+
+        x = list(range(1, len(y) + 1))
+        X = sweat.array_1d_to_2d(x)
+
+        data = {}
+        for model, params in curve.items():
+            regressor = DurationRegressor(model=model)
+            data[model] = regressor.predict_with_params(X, **params)
+
+        data = pd.DataFrame(data)
 
         fig = get_base_fig()
 
         fig["data"].append(dict(x=x, y=y, name="Actual", mode="lines", type="scatter"))
+        fig["data"].append(
+            dict(
+                x=x,
+                y=historical[f"mean_max_{column}"],
+                name="Historical",
+                mode="lines",
+                type="scatter",
+            )
+        )
+
         all_button = {
             "label": "All",
             "method": "update",
             "args": [
                 {
-                    "visible": np.tile([True], 1 + len(data.columns)),
+                    "visible": np.tile([True], 2 + len(data.columns)),
                     "title": "All models",
                     "showlegend": True,
                 }
@@ -217,7 +268,9 @@ class CurveViewer:
                 "method": "update",
                 "args": [
                     {
-                        "visible": np.concatenate([[True], data.columns.isin([model])]),
+                        "visible": np.concatenate(
+                            [[True, True], data.columns.isin([model])]
+                        ),
                         "title": model,
                         "showlegend": True,
                     }
@@ -287,9 +340,9 @@ class CurveViewer:
             chart = PlotlyGtk(fig)
             chart.set_vexpand(True)
             chart.set_hexpand(True)
-            self.append(chart)
+            self.set_child(chart)
         else:
             webview = FigureWebView(fig)
             webview.set_vexpand(True)
             webview.set_hexpand(True)
-            self.append(webview)
+            self.set_child(webview)

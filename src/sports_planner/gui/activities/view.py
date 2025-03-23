@@ -2,8 +2,8 @@ import logging
 
 import gi
 import sports_planner_lib.utils.format
-from profilehooks import profile
 from sports_planner_lib.db.schemas import Activity
+from sports_planner_lib.metrics.pmc import UniversalStressScore
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -26,7 +26,11 @@ class ActivityListItem(GObject.GObject):
 
     @GObject.Property(type=str)
     def score(self):
-        return f"USS: {self.athlete.get_metric(self.activity, "UniversalStressScore"):0.1f}"
+        uss = self.athlete.get_metric(self.activity, "UniversalStressScore")
+        if uss is None:
+            return ""
+        _, uss, __ = UniversalStressScore.format(uss)
+        return f"USS: {uss}"
 
     @GObject.Property(type=str)
     def duration(self):
@@ -109,8 +113,8 @@ class ActivitiesView(Gtk.Box):
         )
 
         self.activity_view.set_context(context)
+        logger.debug("set_context completed")
 
-    @profile(filename="display_activity.prof")
     def display_activity(self, activity: "Activity") -> None:
         self.activity_pane.set_title(str(activity.name))
 

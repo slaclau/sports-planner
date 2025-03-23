@@ -33,6 +33,7 @@ class ActivityTab(Adw.Bin):
 
     def set_content(self):
         tab_type = self.settings.get_string("type")
+        logger.debug(f"tab type is {tab_type}")
 
         if "gtk" in tab_type:
             tab_type = tab_type.replace("-gtk", "")
@@ -46,3 +47,7 @@ class ActivityTab(Adw.Bin):
             self.set_child(chart.MapViewer(self.name, self.context))
         elif tab_type == "activity-plot":
             self.set_child(chart.ActivityPlot(self.name, self.context, gtk=gtk))
+        elif tab_type == "curve":
+            self.set_child(chart.CurveViewer(self.name, self.context, gtk=gtk))
+        else:
+            raise ValueError("Unknown tab type")
