@@ -40,7 +40,7 @@ class Chart(Adw.Bin):
         activity = self.context.activity
 
         df = activity.records_df
-        columns = [k for k, v in df[columns].isnull().all().items() if not v]
+        columns = [col for col in columns if col in df]
         fig = get_base_fig()
         fig["layout"]["margin"] = dict(l=20, r=20, t=20, b=20)
         i = 0

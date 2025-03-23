@@ -54,11 +54,13 @@ class Metric(Gtk.Box):
         if self.title_class != "":
             self.value_label.remove_css_class(self.title_class)
         height = self.tile_settings.get_int("height")
-        if height >= 3:
+        if height >= 5:
             self.title_class = "title-1"
-            self.unit_label.set_visible(True)
         else:
             self.title_class = "title-2"
+        if height >= 6:
+            self.unit_label.set_visible(True)
+        else:
             self.unit_label.set_visible(False)
         self.value_label.add_css_class(self.title_class)
 
@@ -94,6 +96,8 @@ class Metric(Gtk.Box):
         metric_row.set_model(metrics_list)
         current = self.settings.get_string("metric")
         current, _ = parse_metric_string(current)
+
+        print(metrics_strings)
 
         metrics_group.add(metric_row)
         if current is not None:

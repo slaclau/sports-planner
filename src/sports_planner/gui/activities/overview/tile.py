@@ -73,6 +73,48 @@ class Tile(Gtk.Frame):
 
         self.box.append(self.child)
 
+        # self._add_controllers()
+
+    def _add_controllers(self):
+        click_controller = Gtk.GestureClick()
+        click_controller.set_button(1)
+        click_controller.connect("pressed", self._on_click)
+        self.add_controller(click_controller)
+
+        motion_controller = Gtk.EventControllerMotion()
+        motion_controller.connect("enter", self._on_motion)
+        motion_controller.connect("motion", self._on_motion)
+        motion_controller.connect(
+            "leave", lambda _: self.set_cursor_from_name("default")
+        )
+
+        self.add_controller(motion_controller)
+
+    def _on_click(self, gesture, n_press, x, y):
+        state = gesture.get_current_event_state()
+        width = self.get_width()
+        height = self.get_height()
+
+        if width - x < 8:
+            return
+
+        if height - y < 8:
+            return
+
+    def _on_motion(self, controller, x, y):
+        width = self.get_width()
+        height = self.get_height()
+
+        if width - x < 8:
+            self.set_cursor_from_name("e-resize")
+            return
+
+        if height - y < 8:
+            self.set_cursor_from_name("s-resize")
+            return
+
+        self.set_cursor_from_name("default")
+
     @GObject.Property(type=int)
     def start_column(self):
         return self._start_column

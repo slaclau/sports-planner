@@ -162,9 +162,7 @@ class _Overview(Gtk.Widget):
 
             for tile in column:
                 tile_allocation = Gdk.Rectangle()
-                height = (
-                    tile.height * self.row_height + (tile.height - 1) * self.row_spacing
-                )
+                height = tile.height * self.row_height
                 top = height + y
                 logger.debug(f"checking for overflow in {i}")
                 for widget in column_overflows[i]:
