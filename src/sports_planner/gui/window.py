@@ -1,7 +1,6 @@
 import logging
 
 import gi
-from profilehooks import profile
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -64,8 +63,8 @@ class SportsPlannerWindow(Adw.ApplicationWindow):
         athlete_logger.addHandler(
             ProgressBarHandler(self.sync_progress, level=logging.INFO)
         )
+        logger.debug("window created")
 
-    @profile(filename="sync.prof")
     def _sync(self):
         self.sync_button.set_sensitive(False)
         self.sync_progress.set_visible(True)
