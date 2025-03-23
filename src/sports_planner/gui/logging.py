@@ -16,6 +16,7 @@ class LabelHandler(logging.Handler):
     def format(self, record):
         action_conversion = {
             "download": "Downloading",
+            "import": "Importing",
             "compute_metrics": "Computing metrics for",
             "get_meanmaxes": "Getting Mean Max values for",
         }
