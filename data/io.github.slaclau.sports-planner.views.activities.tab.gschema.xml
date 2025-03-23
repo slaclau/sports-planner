@@ -16,6 +16,7 @@
       <choices>
         <choice value="overview"/>
         <choice value="curve"/>
+        <choice value="curve-gtk"/>
         <choice value="histogram"/>
         <choice value="map"/>
         <choice value="activity-plot"/>
