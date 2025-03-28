@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 import gi
 
+from sports_planner.gui.activities.overview.file_info import FileInfo
+
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Adw, Gtk, Gio, GObject, GLib
@@ -16,7 +18,12 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-tile_type_map = {"metrics-list": MetricsList, "metric": Metric, "chart": Chart}
+tile_type_map = {
+    "metrics-list": MetricsList,
+    "metric": Metric,
+    "chart": Chart,
+    "file-info": FileInfo,
+}
 
 
 class Tile(Gtk.Frame):
@@ -159,7 +166,7 @@ class Tile(Gtk.Frame):
         type_row = Adw.ComboRow(
             title="Type",
         )
-        types = ["metric", "metrics-list", "chart"]
+        types = list(tile_type_map.keys())
         types_list = Gtk.StringList(strings=types)
         type_row.set_model(types_list)
         type_row.set_selected(types.index(self.settings.get_string("type")))

@@ -39,6 +39,7 @@
         <choice value="metrics-list"/>
         <choice value="metric"/>
         <choice value="chart"/>
+        <choice value="file-info"/>
       </choices>
     </key>
   </schema>
