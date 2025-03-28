@@ -2,14 +2,13 @@ import logging
 import time
 import typing
 from functools import wraps
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-DEBUG_TIME = False
-
-
-def logtime(start: float, action: str) -> None:
-    if DEBUG_TIME:
-        print(f"{action} took {time.time() - start} seconds")
-
+def log_debug_time(start: float, action: str) -> float:
+    end = time.time()
+    logger.debug(f"{action} took {end - start} seconds")
+    return end
 
 F = typing.TypeVar("F", bound=typing.Callable[..., typing.Any])  # type: ignore
 
