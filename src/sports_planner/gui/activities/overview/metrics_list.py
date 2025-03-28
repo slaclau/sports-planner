@@ -44,8 +44,9 @@ class MetricsList(Gtk.Grid):
         metrics = self.settings.get_value("metrics").unpack()
         for i in range(0, len(metrics)):
             metric = metrics[i]
-
-            value = self.context.activity.get_metric(metric)
+            value = self.context.activity.get_metric(
+                metric, athlete=self.context.athlete
+            )
             metric_class, fields = parse_metric_string(metric)
             if metric_class is None:
                 logger.error(f"Unknown metric {metric}")

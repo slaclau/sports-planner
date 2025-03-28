@@ -1,3 +1,4 @@
+import datetime
 from numbers import Number
 from typing import TYPE_CHECKING
 import logging
@@ -8,7 +9,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gtk, Gio, GObject
+from gi.repository import Adw, Gtk, Gio
 
 from sports_planner_lib.metrics.calculate import parse_metric_string, get_all_metrics
 from sports_planner_lib.metrics.base import Metric
@@ -45,8 +46,13 @@ class Metric(Gtk.Box):
 
         self.unit_label = Gtk.Label()
 
+        self.plot = Gtk.DrawingArea(
+            vexpand=True, margin_start=8, margin_end=8, margin_top=8, margin_bottom=8
+        )
+
         self.append(self.value_label)
         self.append(self.unit_label)
+        self.append(self.plot)
         self._update()
 
     def _update(self):
@@ -73,6 +79,9 @@ class Metric(Gtk.Box):
             logger.error(f"Unknown metric {metric}")
 
         if value is None or isinstance(value, Number) and np.isnan(value):
+            self.value_label.set_text("")
+            self.unit_label.set_text("")
+            self.plot.set_visible(False)
             return
 
         logger.debug(f"adding {self.metric_class.name} [{self.fields}]: {value}")
@@ -80,6 +89,45 @@ class Metric(Gtk.Box):
 
         self.value_label.set_text(value)
         self.unit_label.set_text(unit)
+
+        if height >= 8:
+            self.plot.set_visible(True)
+            days = 42
+
+            history = self.context.athlete.aggregate_metric(
+                metric,
+                sport=self.context.activity.get_metric("Sport")["sport"],
+                start_date=self.context.activity.timestamp.date()
+                - datetime.timedelta(days=days),
+                end_date=self.context.activity.timestamp.date(),
+            )
+            history["day"] = [
+                d.days
+                for d in history.index.date
+                - (
+                    self.context.activity.timestamp.date()
+                    - datetime.timedelta(days=days)
+                )
+            ]
+
+            def draw_func(area, context, width, height):
+                color = self.get_color()
+                context.set_source_rgb(color.red, color.green, color.blue)
+
+                min_value = history.value.min()
+                max_value = history.value.max()
+
+                for row in history.itertuples():
+                    context.line_to(
+                        row.day / days * width,
+                        height
+                        - (row.value - min_value) / (max_value - min_value) * height,
+                    )
+                context.stroke()
+
+            self.plot.set_draw_func(draw_func)
+        else:
+            self.plot.set_visible(False)
 
     def get_settings_pages(self):
         metrics_page = Adw.PreferencesPage(title="Metric", icon_name="cycling-symbolic")
@@ -96,8 +144,6 @@ class Metric(Gtk.Box):
         metric_row.set_model(metrics_list)
         current = self.settings.get_string("metric")
         current, _ = parse_metric_string(current)
-
-        print(metrics_strings)
 
         metrics_group.add(metric_row)
         if current is not None:
