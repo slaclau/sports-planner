@@ -1,13 +1,13 @@
 import datetime
+import logging
+import time
 from typing import TYPE_CHECKING
 
 import gi
 import numpy as np
-import pandas as pd
 import plotly.express as px  # type: ignore
 import plotly.graph_objects as go  # type: ignore
 import plotly.io as pio  # type: ignore
-import sports_planner_lib.db.schemas
 import sweat  # type: ignore
 from plotly_gtk.chart import PlotlyGtk
 from plotly_gtk.utils import get_base_fig
@@ -15,12 +15,17 @@ from plotly_gtk.webview import FigureWebView
 from sports_planner_lib.db.schemas import Activity
 from sports_planner_lib.metrics.pdm import Curve, DurationRegressor
 
+from sports_planner.utils.logging import log_debug_time
+
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Adw, Gio, Gtk
 
 if TYPE_CHECKING:
-    from sports_planner.gui.main import Context
+    from sports_planner.gui.app import Context
+
+
+logger = logging.getLogger(__name__)
 
 
 class MapViewer(Gtk.Box):
@@ -189,7 +194,7 @@ class CurveViewer(Adw.Bin):
 
     def add_content(self) -> None:
         period = {"days": 42}
-        configured_model = "3-param"
+        configured_model = "3 param"
 
         gtk = self.gtk
 
@@ -205,78 +210,93 @@ class CurveViewer(Adw.Bin):
         y = df[f"mean_max_{column}"]
 
         date = activity.timestamp.date()
-
+        t = time.time()
         historical = self.context.athlete.get_mean_max_for_period(
             column,
             activity.get_metric("Sport")["sport"],
             date - datetime.timedelta(**period),
             date + datetime.timedelta(days=1),
         )
+        t = log_debug_time(t, "get hist")
+        bests = self.context.athlete.get_bests_for_period(
+            column,
+            activity.get_metric("Sport")["sport"],
+            date - datetime.timedelta(**period),
+            date + datetime.timedelta(days=1),
+        )
+        t = log_debug_time(t, "get bests")
 
         x = list(range(1, len(y) + 1))
         X = sweat.array_1d_to_2d(x)
 
-        data = {}
-        for model, params in curve.items():
-            regressor = DurationRegressor(model=model)
-            data[model] = regressor.predict_with_params(X, **params)
+        regressor = DurationRegressor(model=configured_model)
+        regressor.fit(
+            sweat.array_1d_to_2d(bests[bests.duration < 1200].duration),
+            bests[bests.duration < 1200][f"mean_max_{column}"],
+        )
+        predicted = regressor.predict(X)
+        t = log_debug_time(t, "fit and predict")
 
-        data = pd.DataFrame(data)
+        params = regressor.get_fitted_params()
+        logger.debug(f"fit {configured_model} with params {params}")
 
         fig = get_base_fig()
 
         fig["data"].append(dict(x=x, y=y, name="Actual", mode="lines", type="scatter"))
         fig["data"].append(
             dict(
-                x=x,
+                x=historical.duration,
                 y=historical[f"mean_max_{column}"],
                 name="Historical",
                 mode="lines",
                 type="scatter",
+                visible="legendonly",
             )
         )
-
-        all_button = {
-            "label": "All",
-            "method": "update",
-            "args": [
-                {
-                    "visible": np.tile([True], 2 + len(data.columns)),
-                    "title": "All models",
-                    "showlegend": True,
-                }
-            ],
-        }
-
-        buttons = [all_button]
-
-        default = "3 param" if "3 param" in data.columns else "omni"
-
-        for model in data.columns:
-            fig["data"].append(
-                dict(
-                    x=x,
-                    y=data[model],
-                    name=model,
-                    mode="lines",
-                    visible=(model == default),
-                    type="scatter",
-                )
+        fig["data"].append(
+            dict(
+                x=bests.duration,
+                y=bests[f"mean_max_{column}"],
+                name="Bests",
+                mode="markers",
+                type="scatter",
             )
-            button = {
-                "label": model,
-                "method": "update",
-                "args": [
-                    {
-                        "visible": np.concatenate(
-                            [[True, True], data.columns.isin([model])]
-                        ),
-                        "title": model,
-                        "showlegend": True,
-                    }
-                ],
-            }
-            buttons.append(button)
+        )
+        fig["data"].append(
+            dict(
+                x=x,
+                y=predicted,
+                name="Predicted",
+                mode="lines",
+                type="scatter",
+            )
+        )
+        param_map = {"cp": "Critical Power", "w_prime": "W'", "p_max": "Maximum Power"}
+        param_units = {"cp": "W", "w_prime": "kJ", "p_max": "W"}
+        power_formatter = lambda p: f"{p:0.0f}"
+        param_formatters = {
+            "cp": power_formatter,
+            "w_prime": lambda w: f"{w/1000:0.1f}",
+            "p_max": power_formatter,
+        }
+        fig["layout"]["annotations"] = [
+            dict(
+                x=0,
+                y=1,
+                align="left",
+                showarrow=False,
+                xanchor="left",
+                yanchor="bottom",
+                xref="paper",
+                yref="paper",
+                text="<br>".join(
+                    [
+                        f"{param_map[param]}: {param_formatters[param](value)} {param_units[param]}"
+                        for param, value in params.items()
+                    ]
+                ),
+            )
+        ]
 
         ticks = np.array(
             [
@@ -327,12 +347,6 @@ class CurveViewer(Adw.Bin):
                     type="log",
                 ),
                 yaxis_title_text=column,
-                updatemenus=[
-                    {
-                        "active": list(data.columns).index(default) + 1,
-                        "buttons": buttons,
-                    }
-                ],
             )
         )
 
