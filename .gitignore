@@ -45,6 +45,9 @@ pip-delete-this-directory.txt
 # Compiled gresource files
 *.gresource
 
+# Complied gschema files
+gschema.compiled
+
 # venv
 .venv
 
