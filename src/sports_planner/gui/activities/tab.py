@@ -7,7 +7,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk
 
 
-from sports_planner.gui.activities import chart
+from sports_planner.gui.activities import chart, mpl_chart
 from sports_planner.gui.activities.overview.overview import Overview
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class ActivityTab(Adw.Bin):
         elif tab_type == "map":
             self.set_child(chart.MapViewer(self.name, self.context))
         elif tab_type == "activity-plot":
-            self.set_child(chart.ActivityPlot(self.name, self.context, gtk=gtk))
+            self.set_child(mpl_chart.ActivityPlot(self.name, self.context))
         elif tab_type == "curve":
             self.set_child(chart.CurveViewer(self.name, self.context, gtk=gtk))
         else:

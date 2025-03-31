@@ -11,7 +11,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk
 
 from sports_planner.gui.activities.activity import ActivityView
-from sports_planner.gui.activities.calendar import Calendar
+from sports_planner.gui.activities.mini_calendar import Calendar
 
 
 class ActivityListItem(GObject.GObject):
