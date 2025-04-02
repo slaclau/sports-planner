@@ -26,7 +26,7 @@ class Chart(Adw.Bin):
         super().__init__()
         self.context = context
         self.settings = Gio.Settings(
-            schema_id=f"io.github.slaclau.sports-planner.views.activities.tabs.overview.tile.chart",
+            schema_id=f"io.github.slaclau.sports-planner.tabs.overview.tile.chart",
             path=config_path,
         )
         self.settings.connect("changed::chart-columns", lambda s, k: self._update())

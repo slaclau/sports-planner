@@ -45,7 +45,7 @@ class Tile(Gtk.Frame):
 
         config_path = f"/io/github/slaclau/sports-planner/views/activities/tabs/{overview.name}/tiles/{id}/"
         self.settings = Gio.Settings(
-            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.overview.tile",
+            schema_id="io.github.slaclau.sports-planner.tabs.overview.tile",
             path=config_path,
         )
         tile_type = self.settings.get_string("type")

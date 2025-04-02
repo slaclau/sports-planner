@@ -25,7 +25,7 @@ class MetricsList(Gtk.Grid):
         super().__init__(margin_start=5, margin_end=5)
         self.context = context
         self.settings = Gio.Settings(
-            schema_id=f"io.github.slaclau.sports-planner.views.activities.tabs.overview.tile.metrics-list",
+            schema_id=f"io.github.slaclau.sports-planner.tabs.overview.tile.metrics-list",
             path=config_path,
         )
         self.settings.connect("changed::metrics", lambda s, k: self._update())

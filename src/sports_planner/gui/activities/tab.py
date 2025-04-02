@@ -21,7 +21,7 @@ class ActivityTab(Adw.Bin):
         self.context = context
 
         self.settings = Gio.Settings(
-            schema_id="io.github.slaclau.sports-planner.views.activities.tab",
+            schema_id="io.github.slaclau.sports-planner.tabs.tab",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
         )
         self.title = self.settings.get_string("title")
@@ -48,6 +48,6 @@ class ActivityTab(Adw.Bin):
         elif tab_type == "activity-plot":
             self.set_child(mpl_chart.ActivityPlot(self.name, self.context))
         elif tab_type == "curve":
-            self.set_child(chart.CurveViewer(self.name, self.context, gtk=gtk))
+            self.set_child(mpl_chart.CurvePlot(self.name, self.context))
         else:
             raise ValueError("Unknown tab type")

@@ -28,11 +28,11 @@ class Metric(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.context = context
         self.settings = Gio.Settings(
-            schema_id=f"io.github.slaclau.sports-planner.views.activities.tabs.overview.tile.metric",
+            schema_id=f"io.github.slaclau.sports-planner.tabs.overview.tile.metric",
             path=config_path,
         )
         self.tile_settings = Gio.Settings(
-            schema_id=f"io.github.slaclau.sports-planner.views.activities.tabs.overview.tile",
+            schema_id=f"io.github.slaclau.sports-planner.tabs.overview.tile",
             path=config_path,
         )
         self.settings.connect("changed::metric", lambda s, k: self._update())
@@ -73,7 +73,7 @@ class Metric(Gtk.Box):
         logger.debug("adding metric")
         metric = self.settings.get_string("metric")
 
-        value = self.context.activity.get_metric(metric)
+        value = self.context.activity.get_metric(metric, self.context.athlete)
         self.metric_class, self.fields = parse_metric_string(metric)
         if self.metric_class is None:
             logger.error(f"Unknown metric {metric}")

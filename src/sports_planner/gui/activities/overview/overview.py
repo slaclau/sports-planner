@@ -28,7 +28,7 @@ class _Overview(Gtk.Widget):
         self.name = name
         self.context = context
         self.settings = Gio.Settings(
-            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.overview",
+            schema_id="io.github.slaclau.sports-planner.tabs.overview",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
         )
 

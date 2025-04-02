@@ -32,7 +32,7 @@ class MapViewer(Gtk.Box):
     def __init__(self, name, context: "Context"):
         super().__init__()
         self.settings = Gio.Settings(
-            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.map",
+            schema_id="io.github.slaclau.sports-planner.tabs.map",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
         )
         self.settings.connect("changed", lambda s, k: self.add_content())
@@ -87,7 +87,7 @@ class ActivityPlot(Gtk.Box):
         self.gtk = gtk
 
         self.settings = Gio.Settings(
-            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.activity-plot",
+            schema_id="io.github.slaclau.sports-planner.tabs.activity-plot",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
         )
         self.settings.connect("changed", lambda s, k: self.add_content())
@@ -184,7 +184,7 @@ class CurveViewer(Adw.Bin):
         self.gtk = gtk
 
         self.settings = Gio.Settings(
-            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.curve",
+            schema_id="io.github.slaclau.sports-planner.tabs.curve",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
         )
         self.settings.connect("changed", lambda s, k: self.add_content())
