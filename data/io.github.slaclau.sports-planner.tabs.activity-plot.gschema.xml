@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <schemalist>
-  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.activity-plot">
+  <schema id="io.github.slaclau.sports-planner.tabs.activity-plot">
     <key name="columns" type="as">
       <summary>Columns to plot.</summary>
       <description>

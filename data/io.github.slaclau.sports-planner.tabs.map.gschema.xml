@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <schemalist>
-  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.map">
+  <schema id="io.github.slaclau.sports-planner.tabs.map">
     <key name="zoom" type="i">
       <summary>Zoom level for the map.</summary>
       <description>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <schemalist>
-  <schema id="io.github.slaclau.sports-planner.views.activities.tabs.overview.tile.metric">
+  <schema id="io.github.slaclau.sports-planner.tabs.overview.tile.metric">
     <key name="metric" type="s">
       <summary>Metric to show.</summary>
       <description>
