@@ -1,24 +1,30 @@
+import datetime
+import logging
+import time
+
 import gi
 import numpy as np
-from matplotlib import gridspec
-from matplotlib.pyplot import subplot
-from matplotlib.widgets import MultiCursor, Slider, RangeSlider
-from sports_planner_lib.athlete import Athlete
 import pint
+import sweat
+from sports_planner_lib.athlete import Athlete
+from sports_planner_lib.metrics.pdm import DurationRegressor
 from sports_planner_lib.utils import format
+
+from sports_planner.utils.logging import log_debug_time
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gtk, Gio
-
+import matplotlib.pyplot as plt
+from gi.repository import Adw, Gio, Gtk
+from matplotlib import gridspec
 from matplotlib.backends.backend_gtk4 import NavigationToolbar2GTK4 as NavigationToolbar
-
 from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter, MultipleLocator
-import matplotlib.pyplot as plt
 
 plt.style.use("./adwaita-dark.mplstyle")
+
+logger = logging.getLogger(__name__)
 
 
 class BasePlot(Gtk.Box):
@@ -47,7 +53,7 @@ class BasePlot(Gtk.Box):
         scroller.set_child(canvas)
         self.append(scroller)
         canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
-        canvas.mpl_connect("button_press_event", self.on_click)
+        # canvas.mpl_connect("button_press_event", self.on_click)
 
         # Create toolbar
         toolbar = NavigationToolbar(canvas)
@@ -63,16 +69,17 @@ class BasePlot(Gtk.Box):
         self._text = None
         self._x_formatter = None
 
-        self.x_to_timedelta = True
-
         self.series = []
         self._vlines = []
         self._held = False
         self._last_idx = None
 
         self.fig.clf()
+        self.canvas.draw()
 
     def _set_cursor_visible(self, visible: bool) -> bool:
+        if self._text is None:
+            return False
         need_redraw = self._text.get_visible() != visible
         self._text.set_visible(visible)
         for vline in self._vlines:
@@ -96,9 +103,17 @@ class BasePlot(Gtk.Box):
                     return
                 self._last_idx = idx
                 if not text:
-                    x_value = series["x"].iloc[idx]
+                    if isinstance(series["x"], list) or isinstance(
+                        series["x"], np.ndarray
+                    ):
+                        x_value = series["x"][idx]
+                    else:
+                        x_value = series["x"].iloc[idx]
                     text.append(format.time(x_value))
-                y_value = series["y"].iloc[idx]
+                if isinstance(series["y"], list) or isinstance(series["y"], np.ndarray):
+                    y_value = series["y"][idx]
+                else:
+                    y_value = series["y"].iloc[idx]
 
                 self._vlines[i].set_xdata([event.xdata])
 
@@ -178,6 +193,9 @@ class BasePlot(Gtk.Box):
         color=None,
         next_plot=True,
         format=None,
+        fill_under=True,
+        linestyle=None,
+        marker=None,
     ):
         if self.x_to_timedelta:
             x = (x - x.iloc[0]).dt.seconds
@@ -199,7 +217,9 @@ class BasePlot(Gtk.Box):
         else:
             ax = self.fig.axes[-1]
 
-        ax.plot(x, y, color=color, label=name)
+        ax.plot(x, y, color=color, label=name, linestyle=linestyle, marker=marker)
+        if fill_under:
+            ax.fill_between(x, y, color=(color, 0.5))
         ax.set_ylabel(name + f" ({unit})" if unit else name)
         ax.set_xlim([0, max(x)])
 
@@ -219,33 +239,53 @@ class BasePlot(Gtk.Box):
             + (n - 1) * subplot_params.hspace
         )
         self.canvas.set_content_height(needed_height)
+        return ax
+
+
+columns_config = {
+    "power": {"name": "Power", "unit": "W", "format": "0.0f", "color": "#1A5FB4"},
+    "speed": {
+        "name": "Speed",
+        "unit": "km/h",
+        "format": "0.1f",
+        "from_unit": "m/s",
+        "color": "#26A269",
+    },
+    "pace": {
+        "name": "Pace",
+        "unit": "min/km",
+        "format": lambda speed: format.time(1000 / speed, target="minutes"),
+        "from_column": "speed",
+        "color": "#E5A50A",
+    },
+    "heartrate": {
+        "name": "Heartrate",
+        "unit": "bpm",
+        "format": "0.0f",
+        "color": "#A51D2D",
+    },
+    "altitude": {
+        "name": "Altitude",
+        "unit": "m",
+        "format": "0.0f",
+        "color": "#63452C",
+    },
+    "cadence": {
+        "name": "Cadence",
+        "unit": "rpm",
+        "format": "0.0f",
+        "color": "#C64600",
+    },
+}
 
 
 class ActivityPlot(BasePlot):
-    columns_config = {
-        "power": {"name": "Power", "unit": "W", "format": "0.0f"},
-        "speed": {
-            "name": "Speed",
-            "unit": "km/h",
-            "format": "0.1f",
-            "from_unit": "m/s",
-        },
-        "pace": {
-            "name": "Pace",
-            "unit": "min/km",
-            "format": lambda speed: format.time(1000 / speed, target="minutes"),
-            "from_column": "speed",
-        },
-        "heartrate": {"name": "Heartrate", "unit": "bpm", "format": "0.0f"},
-        "altitude": {"name": "Altitude", "unit": "m", "format": "0.0f"},
-        "cadence": {"name": "Cadence", "unit": "rpm", "format": "0.0f"},
-    }
 
     def __init__(self, name, context):
         super().__init__()
 
         self.settings = Gio.Settings(
-            schema_id="io.github.slaclau.sports-planner.views.activities.tabs.activity-plot",
+            schema_id="io.github.slaclau.sports-planner.tabs.activity-plot",
             path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
         )
 
@@ -264,7 +304,11 @@ class ActivityPlot(BasePlot):
         columns = self.settings.get_value("columns").unpack()
 
         for column in columns:
-            config = self.columns_config[column]
+            if column == "altslope":
+                if "altitude" in df:
+                    self.plot_altslope(df)
+                continue
+            config = columns_config[column]
             df_column = config.get("from_column", column)
             if df_column not in df:
                 continue
@@ -282,7 +326,205 @@ class ActivityPlot(BasePlot):
                 name=config.get("name", df_column),
                 unit=config.get("unit", ""),
                 format=config.get("format", None),
+                color=config.get("color", None),
             )
+
+    def plot_altslope(self, df):
+        interval = 60
+        sub_df = df.iloc[::interval].copy()
+        sub_df["timedelta"] = (sub_df.timestamp - sub_df.timestamp.iloc[0]).dt.seconds
+        scale = 36 / interval
+        colors = ["#0F0", "#00F", "#FF0", "#F00", "#F00"]
+        ax = self.add_series(
+            sub_df.timestamp,
+            sub_df.altitude,
+            name="Alt/Slope",
+            unit="m",
+            format="0.1f",
+            fill_under=False,
+            color=columns_config["altitude"]["color"],
+        )
+        last_row = None
+        for row in sub_df.itertuples():
+            if last_row is None:
+                last_row = row
+                continue
+            diff = row.altitude - last_row.altitude
+            if diff < 0:
+                ax.fill_between(
+                    [last_row.timedelta, row.timedelta],
+                    [last_row.altitude, row.altitude],
+                    color=("#7F7F7F", 0.5),
+                    edgecolor=None,
+                )
+            else:
+                zone = int(diff * scale)
+                if zone >= 4:
+                    zone = 4
+                ax.fill_between(
+                    [last_row.timedelta, row.timedelta],
+                    [last_row.altitude, row.altitude],
+                    color=(colors[zone], 0.5),
+                    edgecolor=None,
+                )
+            last_row = row
+
+
+class CurvePlot(BasePlot):
+    def __init__(self, name: str, context):
+        super().__init__()
+        self.x_to_timedelta = False
+        self.settings = Gio.Settings(
+            schema_id="io.github.slaclau.sports-planner.tabs.curve",
+            path=f"/io/github/slaclau/sports-planner/views/activities/tabs/{name}/",
+        )
+
+        context.connect("activity-changed", self.on_activity_changed)
+        self.settings.connect(
+            "changed::columns", lambda s, _: self.on_activity_changed(context)
+        )
+        self.on_activity_changed(context)
+
+    def on_activity_changed(self, context):
+        period = {"days": 42}
+        configured_model = "3 param"
+
+        self.clear()
+        activity = context.activity
+
+        column = self.settings.get_string("column")
+        if column not in activity.available_columns:
+            return
+
+        df = activity.meanmaxes_df
+
+        y = df[f"mean_max_{column}"]
+
+        date = activity.timestamp.date()
+        t = time.time()
+        historical = context.athlete.get_mean_max_for_period(
+            column,
+            activity.get_metric("Sport")["sport"],
+            date - datetime.timedelta(**period),
+            date + datetime.timedelta(days=1),
+        )
+        t = log_debug_time(t, "get hist")
+        bests = context.athlete.get_bests_for_period(
+            column,
+            activity.get_metric("Sport")["sport"],
+            date - datetime.timedelta(**period),
+            date + datetime.timedelta(days=1),
+        )
+        t = log_debug_time(t, "get bests")
+
+        x = list(range(1, len(y) + 1))
+        X = sweat.array_1d_to_2d(x)
+
+        regressor = DurationRegressor(model=configured_model)
+        regressor.fit(
+            sweat.array_1d_to_2d(bests[bests.duration < 1200].duration),
+            bests[bests.duration < 1200][f"mean_max_{column}"],
+        )
+        predicted = regressor.predict(X)
+        t = log_debug_time(t, "fit and predict")
+
+        params = regressor.get_fitted_params()
+        logger.debug(f"fit {configured_model} with params {params}")
+        ax = self.add_series(
+            x,
+            predicted,
+            next_plot=True,
+            name="Predicted",
+            fill_under=True,
+            color=columns_config[column]["color"],
+        )
+        self.add_series(
+            x,
+            y,
+            next_plot=False,
+            name="Actual",
+            fill_under=False,
+            color=columns_config[column]["color"],
+            linestyle="--",
+        )
+        self.add_series(
+            historical.duration,
+            historical[f"mean_max_{column}"],
+            next_plot=False,
+            name="Historical",
+            fill_under=False,
+            linestyle="",
+        )
+        self.add_series(
+            bests.duration,
+            bests[f"mean_max_{column}"],
+            next_plot=False,
+            name="Bests",
+            fill_under=False,
+            linestyle="",
+            marker="o",
+            color="white",
+        )
+        ax.set_ylabel(columns_config[column]["name"])
+        ax.set_xscale("log")
+
+        param_map = {"cp": "Critical Power", "w_prime": "W'", "p_max": "Maximum Power"}
+        param_units = {"cp": "W", "w_prime": "kJ", "p_max": "W"}
+        power_formatter = lambda p: f"{p:0.0f}"
+        param_formatters = {
+            "cp": power_formatter,
+            "w_prime": lambda w: f"{w / 1000:0.1f}",
+            "p_max": power_formatter,
+        }
+        text_str = "<br>".join(
+            [
+                f"{param_map[param]}: {param_formatters[param](value)} {param_units[param]}"
+                for param, value in params.items()
+            ]
+        )
+
+        ticks = np.array(
+            [
+                1,
+                15,
+                60,
+                300,
+                600,
+                1200,
+                1800,
+                2700,
+                3600,
+                5400,
+                3600 * 2,
+                3600 * 3,
+                3600 * 4,
+                3600 * 5,
+                3600 * 6,
+                3600 * 8,
+                3600 * 12,
+                3600 * 18,
+            ]
+        )
+
+        ticklabels = []
+        for tick in ticks:
+            hours = int(np.floor(tick / 3600))
+            tick = tick - 3600 * hours
+            mins = int(np.floor(tick / 60))
+            secs = int(tick - 60 * mins)
+            ticklabel = ""
+            if hours > 0:
+                ticklabel += f"{hours:d}h"
+            if mins > 0:
+                ticklabel += f"{mins:d}m"
+            if secs > 0:
+                ticklabel += f"{secs:d}s"
+
+            ticklabels.append(ticklabel)
+
+        ax.set_xticks(ticks, labels=ticklabels)
+        ax.set_xticks([], minor=True)
+        ax.set_xlim([1, max(max(x), 1800)])
 
 
 def on_activate(app):
