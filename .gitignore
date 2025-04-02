@@ -45,9 +45,6 @@ pip-delete-this-directory.txt
 # Compiled gresource files
 *.gresource
 
-# Complied gschema files
-gschema.compiled
-
 # venv
 .venv
 
@@ -60,3 +57,6 @@ old
 # Sphinx documentation
 sphinx/build/
 sphinx/source/generated
+
+#gschema file
+/data/gschemas.compiled
